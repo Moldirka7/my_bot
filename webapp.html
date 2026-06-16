@@ -1,0 +1,449 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Боно App</title>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: -apple-system, sans-serif; background: #0f0f1a; color: #fff; min-height: 100vh; }
+  
+  .header { background: linear-gradient(135deg, #667eea, #764ba2); padding: 20px; text-align: center; }
+  .header h1 { font-size: 24px; font-weight: 700; }
+  .header p { opacity: 0.8; font-size: 14px; margin-top: 4px; }
+
+  .tabs { display: flex; background: #1a1a2e; border-bottom: 1px solid #333; }
+  .tab { flex: 1; padding: 12px 4px; text-align: center; font-size: 11px; cursor: pointer; color: #888; border-bottom: 2px solid transparent; transition: all 0.3s; }
+  .tab.active { color: #667eea; border-bottom-color: #667eea; }
+  .tab span { display: block; font-size: 20px; margin-bottom: 2px; }
+
+  .page { display: none; padding: 16px; }
+  .page.active { display: block; }
+
+  /* ЗАДАЧИ */
+  .stats-card { background: linear-gradient(135deg, #667eea, #764ba2); border-radius: 16px; padding: 20px; margin-bottom: 16px; text-align: center; }
+  .stats-percent { font-size: 48px; font-weight: 800; }
+  .stats-bar { background: rgba(255,255,255,0.3); border-radius: 10px; height: 8px; margin: 10px 0; overflow: hidden; }
+  .stats-bar-fill { background: #fff; height: 100%; border-radius: 10px; transition: width 0.5s; }
+  .stats-text { font-size: 13px; opacity: 0.9; }
+
+  .section-title { font-size: 13px; color: #888; text-transform: uppercase; letter-spacing: 1px; margin: 16px 0 8px; }
+  .task-item { background: #1a1a2e; border-radius: 12px; padding: 14px 16px; margin-bottom: 8px; display: flex; align-items: center; gap: 12px; cursor: pointer; transition: all 0.2s; }
+  .task-item:active { transform: scale(0.98); }
+  .task-check { width: 24px; height: 24px; border-radius: 50%; border: 2px solid #667eea; display: flex; align-items: center; justify-content: center; flex-shrink: 0; transition: all 0.2s; }
+  .task-item.done .task-check { background: #667eea; border-color: #667eea; }
+  .task-item.done .task-text { text-decoration: line-through; opacity: 0.5; }
+  .task-text { font-size: 15px; flex: 1; }
+  .task-badge { font-size: 10px; background: #333; padding: 2px 8px; border-radius: 10px; color: #888; }
+
+  .add-btn { background: linear-gradient(135deg, #667eea, #764ba2); border: none; color: white; width: 100%; padding: 14px; border-radius: 12px; font-size: 15px; font-weight: 600; cursor: pointer; margin-top: 8px; }
+
+  /* ДНЕВНИК */
+  .diary-topics { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 16px; }
+  .topic-chip { background: #1a1a2e; border: 1px solid #333; border-radius: 20px; padding: 6px 14px; font-size: 13px; cursor: pointer; transition: all 0.2s; }
+  .topic-chip.active { background: #667eea; border-color: #667eea; }
+  .diary-entries { margin-top: 12px; }
+  .diary-entry { background: #1a1a2e; border-radius: 12px; padding: 14px; margin-bottom: 8px; }
+  .diary-entry-topic { font-size: 11px; color: #667eea; margin-bottom: 4px; }
+  .diary-entry-text { font-size: 14px; line-height: 1.5; }
+  .diary-entry-date { font-size: 11px; color: #555; margin-top: 6px; }
+  textarea { background: #1a1a2e; border: 1px solid #333; border-radius: 12px; color: #fff; width: 100%; padding: 12px; font-size: 14px; resize: none; height: 100px; margin-bottom: 8px; }
+  textarea:focus { outline: none; border-color: #667eea; }
+  select { background: #1a1a2e; border: 1px solid #333; border-radius: 12px; color: #fff; width: 100%; padding: 12px; font-size: 14px; margin-bottom: 8px; appearance: none; }
+
+  /* ФИНАНСЫ */
+  .finance-summary { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 16px; }
+  .finance-card { background: #1a1a2e; border-radius: 12px; padding: 16px; text-align: center; }
+  .finance-card.income { border-top: 3px solid #4ade80; }
+  .finance-card.expense { border-top: 3px solid #f87171; }
+  .finance-card.balance { border-top: 3px solid #667eea; grid-column: span 2; }
+  .finance-amount { font-size: 22px; font-weight: 700; margin-top: 4px; }
+  .finance-label { font-size: 12px; color: #888; }
+  .income .finance-amount { color: #4ade80; }
+  .expense .finance-amount { color: #f87171; }
+  .balance .finance-amount { color: #667eea; }
+  .transaction-item { background: #1a1a2e; border-radius: 12px; padding: 12px 16px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; }
+  .transaction-info { flex: 1; }
+  .transaction-cat { font-size: 12px; color: #888; }
+  .transaction-name { font-size: 14px; }
+  .transaction-amount { font-size: 16px; font-weight: 600; }
+  .transaction-amount.plus { color: #4ade80; }
+  .transaction-amount.minus { color: #f87171; }
+  .type-toggle { display: flex; background: #1a1a2e; border-radius: 12px; padding: 4px; margin-bottom: 12px; }
+  .type-btn { flex: 1; padding: 8px; border: none; border-radius: 8px; background: transparent; color: #888; cursor: pointer; font-size: 14px; }
+  .type-btn.active { background: #667eea; color: white; }
+  input[type=text], input[type=number] { background: #1a1a2e; border: 1px solid #333; border-radius: 12px; color: #fff; width: 100%; padding: 12px; font-size: 14px; margin-bottom: 8px; }
+  input:focus { outline: none; border-color: #667eea; }
+
+  /* ПОЕЗДКИ */
+  .trip-card { background: linear-gradient(135deg, #1a1a2e, #16213e); border-radius: 16px; padding: 16px; margin-bottom: 12px; border: 1px solid #333; }
+  .trip-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+  .trip-name { font-size: 17px; font-weight: 600; }
+  .trip-dates { font-size: 12px; color: #888; }
+  .trip-status { font-size: 11px; padding: 3px 10px; border-radius: 10px; }
+  .trip-status.planned { background: #1e3a5f; color: #60a5fa; }
+  .trip-status.active { background: #1a3a1a; color: #4ade80; }
+  .trip-budget { display: flex; justify-content: space-between; margin-top: 8px; padding-top: 8px; border-top: 1px solid #333; }
+  .trip-budget-item { text-align: center; }
+  .trip-budget-val { font-size: 15px; font-weight: 600; }
+  .trip-budget-label { font-size: 11px; color: #888; }
+  .checklist-item { display: flex; align-items: center; gap: 10px; padding: 8px 0; border-bottom: 1px solid #222; cursor: pointer; }
+  .checklist-check { width: 20px; height: 20px; border-radius: 4px; border: 2px solid #667eea; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .checklist-item.done .checklist-check { background: #667eea; }
+  .checklist-item.done span { text-decoration: line-through; opacity: 0.5; }
+
+  .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.7); z-index: 100; align-items: flex-end; }
+  .modal.open { display: flex; }
+  .modal-content { background: #1a1a2e; border-radius: 20px 20px 0 0; padding: 24px; width: 100%; max-height: 80vh; overflow-y: auto; }
+  .modal-title { font-size: 18px; font-weight: 700; margin-bottom: 16px; }
+  .modal-close { float: right; background: none; border: none; color: #888; font-size: 24px; cursor: pointer; margin-top: -4px; }
+
+  .analysis-box { background: #16213e; border-radius: 12px; padding: 14px; margin-top: 12px; border-left: 3px solid #667eea; }
+  .analysis-title { font-size: 12px; color: #667eea; margin-bottom: 6px; }
+  .analysis-text { font-size: 13px; line-height: 1.6; color: #ccc; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>🤖 Боно App</h1>
+  <p>Твой личный помощник</p>
+</div>
+
+<div class="tabs">
+  <div class="tab active" onclick="showPage('tasks')"><span>✅</span>Задачи</div>
+  <div class="tab" onclick="showPage('diary')"><span>📔</span>Дневник</div>
+  <div class="tab" onclick="showPage('finance')"><span>💰</span>Финансы</div>
+  <div class="tab" onclick="showPage('trips')"><span>✈️</span>Поездки</div>
+</div>
+
+<!-- ЗАДАЧИ -->
+<div class="page active" id="page-tasks">
+  <div class="stats-card">
+    <div class="stats-percent" id="statsPercent">0%</div>
+    <div class="stats-bar"><div class="stats-bar-fill" id="statsBar" style="width:0%"></div></div>
+    <div class="stats-text" id="statsText">Добавь задачи на сегодня</div>
+  </div>
+
+  <div class="section-title">🔁 Ежедневные</div>
+  <div id="dailyList"></div>
+  <button class="add-btn" onclick="openModal('addDaily')">+ Добавить ежедневную</button>
+
+  <div class="section-title" style="margin-top:20px">📌 Одноразовые</div>
+  <div id="onceList"></div>
+  <button class="add-btn" onclick="openModal('addOnce')">+ Добавить одноразовую</button>
+</div>
+
+<!-- ДНЕВНИК -->
+<div class="page" id="page-diary">
+  <div class="diary-topics" id="topicsList"></div>
+  <select id="entryTopic">
+    <option value="Мысли">💭 Мысли</option>
+    <option value="Работа">💼 Работа</option>
+    <option value="Здоровье">❤️ Здоровье</option>
+    <option value="Отношения">👥 Отношения</option>
+    <option value="Цели">🎯 Цели</option>
+    <option value="Другое">📝 Другое</option>
+  </select>
+  <textarea id="entryText" placeholder="Напиши свои мысли..."></textarea>
+  <button class="add-btn" onclick="saveDiaryEntry()">Сохранить запись</button>
+  <div class="diary-entries" id="diaryEntries"></div>
+</div>
+
+<!-- ФИНАНСЫ -->
+<div class="page" id="page-finance">
+  <div class="finance-summary">
+    <div class="finance-card income"><div class="finance-label">Доходы</div><div class="finance-amount" id="totalIncome">0 ₸</div></div>
+    <div class="finance-card expense"><div class="finance-label">Расходы</div><div class="finance-amount" id="totalExpense">0 ₸</div></div>
+    <div class="finance-card balance"><div class="finance-label">Баланс</div><div class="finance-amount" id="totalBalance">0 ₸</div></div>
+  </div>
+
+  <div id="analysisBox" class="analysis-box" style="display:none">
+    <div class="analysis-title">🤖 Анализ Боно</div>
+    <div class="analysis-text" id="analysisText"></div>
+  </div>
+
+  <button class="add-btn" onclick="openModal('addFinance')" style="margin-bottom:12px">+ Добавить транзакцию</button>
+  <div class="section-title">История</div>
+  <div id="transactionList"></div>
+</div>
+
+<!-- ПОЕЗДКИ -->
+<div class="page" id="page-trips">
+  <button class="add-btn" onclick="openModal('addTrip')" style="margin-bottom:16px">+ Новая поездка</button>
+  <div id="tripList"></div>
+</div>
+
+<!-- МОДАЛКИ -->
+<div class="modal" id="modal-addDaily">
+  <div class="modal-content">
+    <button class="modal-close" onclick="closeModal('addDaily')">×</button>
+    <div class="modal-title">Ежедневная задача</div>
+    <input type="text" id="newDailyTask" placeholder="Например: Выпить 2л воды">
+    <button class="add-btn" onclick="addDailyTask()">Добавить</button>
+  </div>
+</div>
+
+<div class="modal" id="modal-addOnce">
+  <div class="modal-content">
+    <button class="modal-close" onclick="closeModal('addOnce')">×</button>
+    <div class="modal-title">Одноразовая задача</div>
+    <input type="text" id="newOnceTask" placeholder="Например: Позвонить врачу">
+    <button class="add-btn" onclick="addOnceTask()">Добавить</button>
+  </div>
+</div>
+
+<div class="modal" id="modal-addFinance">
+  <div class="modal-content">
+    <button class="modal-close" onclick="closeModal('addFinance')">×</button>
+    <div class="modal-title">Новая транзакция</div>
+    <div class="type-toggle">
+      <button class="type-btn active" id="btn-expense" onclick="setType('expense')">Расход</button>
+      <button class="type-btn" id="btn-income" onclick="setType('income')">Доход</button>
+    </div>
+    <input type="text" id="finName" placeholder="Название (Кафе, Зарплата...)">
+    <select id="finCat">
+      <option>🍔 Еда</option>
+      <option>🚗 Транспорт</option>
+      <option>🛍 Покупки</option>
+      <option>💊 Здоровье</option>
+      <option>🎉 Развлечения</option>
+      <option>💼 Работа/Доход</option>
+      <option>🏠 Дом</option>
+      <option>📱 Связь</option>
+      <option>✈️ Поездки</option>
+      <option>📦 Другое</option>
+    </select>
+    <input type="number" id="finAmount" placeholder="Сумма в тенге">
+    <button class="add-btn" onclick="addTransaction()">Добавить</button>
+  </div>
+</div>
+
+<div class="modal" id="modal-addTrip">
+  <div class="modal-content">
+    <button class="modal-close" onclick="closeModal('addTrip')">×</button>
+    <div class="modal-title">Новая поездка</div>
+    <input type="text" id="tripName" placeholder="Куда едешь? (Алматы, Дубай...)">
+    <input type="text" id="tripDates" placeholder="Даты (01.07 - 07.07)">
+    <input type="number" id="tripBudget" placeholder="Бюджет в тенге">
+    <button class="add-btn" onclick="addTrip()">Создать поездку</button>
+  </div>
+</div>
+
+<script>
+  const tg = window.Telegram?.WebApp;
+  if (tg) tg.expand();
+
+  let data = JSON.parse(localStorage.getItem('bonoData') || '{}');
+  if (!data.dailyTasks) data.dailyTasks = [];
+  if (!data.onceTasks) data.onceTasks = [];
+  if (!data.dailyDone) data.dailyDone = {};
+  if (!data.diary) data.diary = [];
+  if (!data.finance) data.finance = [];
+  if (!data.trips) data.trips = [];
+  if (!data.finType) data.finType = 'expense';
+
+  function save() { localStorage.setItem('bonoData', JSON.stringify(data)); }
+
+  function showPage(page) {
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    document.getElementById('page-' + page).classList.add('active');
+    event.currentTarget.classList.add('active');
+    if (page === 'finance') updateFinanceAnalysis();
+  }
+
+  function openModal(name) { document.getElementById('modal-' + name).classList.add('open'); }
+  function closeModal(name) { document.getElementById('modal-' + name).classList.remove('open'); }
+
+  // ЗАДАЧИ
+  function renderTasks() {
+    const daily = data.dailyTasks;
+    const once = data.onceTasks;
+    const done = daily.filter((_, i) => data.dailyDone[i]).length + once.filter(t => t.done).length;
+    const total = daily.length + once.length;
+    const percent = total > 0 ? Math.round((done / total) * 100) : 0;
+
+    document.getElementById('statsPercent').textContent = percent + '%';
+    document.getElementById('statsBar').style.width = percent + '%';
+    document.getElementById('statsText').textContent = total > 0 ? `Выполнено ${done} из ${total} задач ${percent === 100 ? '🎉 Молодец!' : ''}` : 'Добавь задачи на сегодня';
+
+    document.getElementById('dailyList').innerHTML = daily.map((t, i) => `
+      <div class="task-item ${data.dailyDone[i] ? 'done' : ''}" onclick="toggleDaily(${i})">
+        <div class="task-check">${data.dailyDone[i] ? '✓' : ''}</div>
+        <div class="task-text">${t}</div>
+        <div class="task-badge">каждый день</div>
+      </div>`).join('');
+
+    document.getElementById('onceList').innerHTML = once.map((t, i) => `
+      <div class="task-item ${t.done ? 'done' : ''}" onclick="toggleOnce(${i})">
+        <div class="task-check">${t.done ? '✓' : ''}</div>
+        <div class="task-text">${t.text}</div>
+      </div>`).join('');
+  }
+
+  function toggleDaily(i) { data.dailyDone[i] = !data.dailyDone[i]; save(); renderTasks(); }
+  function toggleOnce(i) { data.onceTasks[i].done = !data.onceTasks[i].done; save(); renderTasks(); }
+
+  function addDailyTask() {
+    const val = document.getElementById('newDailyTask').value.trim();
+    if (!val) return;
+    data.dailyTasks.push(val);
+    save(); renderTasks(); closeModal('addDaily');
+    document.getElementById('newDailyTask').value = '';
+  }
+
+  function addOnceTask() {
+    const val = document.getElementById('newOnceTask').value.trim();
+    if (!val) return;
+    data.onceTasks.push({ text: val, done: false });
+    save(); renderTasks(); closeModal('addOnce');
+    document.getElementById('newOnceTask').value = '';
+  }
+
+  // ДНЕВНИК
+  function renderDiary() {
+    const topics = [...new Set(data.diary.map(e => e.topic))];
+    document.getElementById('topicsList').innerHTML = ['Все', ...topics].map(t => `
+      <div class="topic-chip ${t === 'Все' ? 'active' : ''}" onclick="filterDiary('${t}', this)">${t}</div>`).join('');
+    renderDiaryEntries('Все');
+  }
+
+  function filterDiary(topic, el) {
+    document.querySelectorAll('.topic-chip').forEach(c => c.classList.remove('active'));
+    el.classList.add('active');
+    renderDiaryEntries(topic);
+  }
+
+  function renderDiaryEntries(filter) {
+    const entries = filter === 'Все' ? data.diary : data.diary.filter(e => e.topic === filter);
+    document.getElementById('diaryEntries').innerHTML = [...entries].reverse().map(e => `
+      <div class="diary-entry">
+        <div class="diary-entry-topic">${e.topic}</div>
+        <div class="diary-entry-text">${e.text}</div>
+        <div class="diary-entry-date">${e.date}</div>
+      </div>`).join('') || '<p style="color:#555;text-align:center;padding:20px">Пока нет записей</p>';
+  }
+
+  function saveDiaryEntry() {
+    const text = document.getElementById('entryText').value.trim();
+    const topic = document.getElementById('entryTopic').value;
+    if (!text) return;
+    data.diary.push({ text, topic, date: new Date().toLocaleDateString('ru') });
+    save(); renderDiary();
+    document.getElementById('entryText').value = '';
+  }
+
+  // ФИНАНСЫ
+  function setType(type) {
+    data.finType = type;
+    document.getElementById('btn-expense').classList.toggle('active', type === 'expense');
+    document.getElementById('btn-income').classList.toggle('active', type === 'income');
+  }
+
+  function addTransaction() {
+    const name = document.getElementById('finName').value.trim();
+    const cat = document.getElementById('finCat').value;
+    const amount = parseFloat(document.getElementById('finAmount').value);
+    if (!name || !amount) return;
+    data.finance.push({ name, cat, amount, type: data.finType, date: new Date().toLocaleDateString('ru') });
+    save(); renderFinance(); closeModal('addFinance');
+    document.getElementById('finName').value = '';
+    document.getElementById('finAmount').value = '';
+  }
+
+  function renderFinance() {
+    const income = data.finance.filter(t => t.type === 'income').reduce((s, t) => s + t.amount, 0);
+    const expense = data.finance.filter(t => t.type === 'expense').reduce((s, t) => s + t.amount, 0);
+    document.getElementById('totalIncome').textContent = income.toLocaleString() + ' ₸';
+    document.getElementById('totalExpense').textContent = expense.toLocaleString() + ' ₸';
+    document.getElementById('totalBalance').textContent = (income - expense).toLocaleString() + ' ₸';
+    document.getElementById('transactionList').innerHTML = [...data.finance].reverse().map(t => `
+      <div class="transaction-item">
+        <div class="transaction-info">
+          <div class="transaction-cat">${t.cat} · ${t.date}</div>
+          <div class="transaction-name">${t.name}</div>
+        </div>
+        <div class="transaction-amount ${t.type === 'income' ? 'plus' : 'minus'}">${t.type === 'income' ? '+' : '-'}${t.amount.toLocaleString()} ₸</div>
+      </div>`).join('') || '<p style="color:#555;text-align:center;padding:20px">Пока нет транзакций</p>';
+  }
+
+  function updateFinanceAnalysis() {
+    const cats = {};
+    data.finance.filter(t => t.type === 'expense').forEach(t => {
+      cats[t.cat] = (cats[t.cat] || 0) + t.amount;
+    });
+    const sorted = Object.entries(cats).sort((a, b) => b[1] - a[1]);
+    if (sorted.length === 0) return;
+    const total = sorted.reduce((s, [, v]) => s + v, 0);
+    let analysis = '';
+    sorted.slice(0, 3).forEach(([cat, amount]) => {
+      const pct = Math.round(amount / total * 100);
+      analysis += `${cat}: ${amount.toLocaleString()} ₸ (${pct}%)\n`;
+    });
+    if (sorted[0] && sorted[0][1] / total > 0.4) {
+      analysis += `\n⚠️ На ${sorted[0][0]} уходит больше 40% расходов — стоит пересмотреть!`;
+    }
+    document.getElementById('analysisBox').style.display = 'block';
+    document.getElementById('analysisText').textContent = analysis;
+  }
+
+  // ПОЕЗДКИ
+  function renderTrips() {
+    document.getElementById('tripList').innerHTML = data.trips.map((t, i) => `
+      <div class="trip-card">
+        <div class="trip-header">
+          <div>
+            <div class="trip-name">✈️ ${t.name}</div>
+            <div class="trip-dates">${t.dates}</div>
+          </div>
+          <div class="trip-status planned">Запланировано</div>
+        </div>
+        <div class="trip-budget">
+          <div class="trip-budget-item"><div class="trip-budget-val">${parseInt(t.budget).toLocaleString()} ₸</div><div class="trip-budget-label">Бюджет</div></div>
+          <div class="trip-budget-item"><div class="trip-budget-val">${t.checklist.filter(c => c.done).length}/${t.checklist.length}</div><div class="trip-budget-label">Чеклист</div></div>
+        </div>
+        <div style="margin-top:12px">
+          ${t.checklist.map((c, j) => `
+            <div class="checklist-item ${c.done ? 'done' : ''}" onclick="toggleChecklist(${i}, ${j})">
+              <div class="checklist-check">${c.done ? '✓' : ''}</div>
+              <span>${c.text}</span>
+            </div>`).join('')}
+        </div>
+      </div>`).join('') || '<p style="color:#555;text-align:center;padding:40px">Добавь свою первую поездку! ✈️</p>';
+  }
+
+  function addTrip() {
+    const name = document.getElementById('tripName').value.trim();
+    const dates = document.getElementById('tripDates').value.trim();
+    const budget = document.getElementById('tripBudget').value;
+    if (!name) return;
+    data.trips.push({
+      name, dates, budget: budget || 0,
+      checklist: [
+        { text: 'Купить билеты', done: false },
+        { text: 'Забронировать отель', done: false },
+        { text: 'Оформить визу', done: false },
+        { text: 'Собрать чемодан', done: false },
+        { text: 'Взять документы', done: false }
+      ]
+    });
+    save(); renderTrips(); closeModal('addTrip');
+    document.getElementById('tripName').value = '';
+    document.getElementById('tripDates').value = '';
+    document.getElementById('tripBudget').value = '';
+  }
+
+  function toggleChecklist(tripI, itemI) {
+    data.trips[tripI].checklist[itemI].done = !data.trips[tripI].checklist[itemI].done;
+    save(); renderTrips();
+  }
+
+  renderTasks();
+  renderDiary();
+  renderFinance();
+  renderTrips();
+</script>
+</body>
+</html>
