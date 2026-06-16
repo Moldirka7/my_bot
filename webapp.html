@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Боно App</title>
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <style>
 :root[data-theme="dark"]{--bg:#0f0f1a;--bg2:#1a1a2e;--bg3:#16213e;--text:#fff;--text2:#888;--border:#333;--accent:#667eea;--accent2:#764ba2;--green:#4ade80;--red:#f87171;--yellow:#fbbf24;}
 :root[data-theme="light"]{--bg:#f0f2ff;--bg2:#fff;--bg3:#e8ebff;--text:#1a1a2e;--text2:#666;--border:#ddd;--accent:#667eea;--accent2:#764ba2;--green:#16a34a;--red:#dc2626;--yellow:#d97706;}
@@ -304,6 +305,12 @@ input:focus{outline:none;border-color:var(--accent);}
 const tg = window.Telegram && window.Telegram.WebApp;
 if (tg) { tg.expand(); tg.ready(); }
 
+const SURL = 'rbaepivpvkejdjyrxuzo';
+const SKEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJiYWVwaXZwdmtlamRqeXJ4dXpvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE2MjMzNDMsImV4cCI6MjA5NzE5OTM0M30.MQLxXgKsUTcA3CPzwav7tXfr5LhtZFSLCaUaMF5hRzo';
+let sb = null;
+let userId = 'local';
+try { sb = supabase.createClient(SURL, SKEY); } catch(e) {}
+
 let D = JSON.parse(localStorage.getItem('bonoD') || '{}');
 if (!D.daily) D.daily = [];
 if (!D.once) D.once = [];
@@ -339,7 +346,17 @@ const QQ = [
   {t:"Жизнь начинается там, где заканчивается зона комфорта.",a:"— Нил Дональд Уолш"},
 ];
 
-function save() { localStorage.setItem('bonoD', JSON.stringify(D)); }
+function save() {
+  localStorage.setItem('bonoD', JSON.stringify(D));
+  if (sb && userId !== 'local') {
+    sb.from('user_data').select('id').eq('user_id', userId).single().then(function(r) {
+      if (r.data) sb.from('user_data').update({data: JSON.stringify(D)}).eq('user_id', userId);
+      else sb.from('user_data').insert({user_id: userId, data: JSON.stringify(D)});
+    }).catch(function() {
+      sb.from('user_data').insert({user_id: userId, data: JSON.stringify(D)});
+    });
+  }
+}
 
 function applyTheme(t) {
   document.documentElement.setAttribute('data-theme', t);
@@ -626,7 +643,21 @@ function renderQuotes(){document.getElementById('allQ').innerHTML=QQ.map(functio
 
 // INIT
 applyTheme(D.theme||'dark');
-if(tg&&tg.initDataUnsafe&&tg.initDataUnsafe.user){document.getElementById('uname').textContent=tg.initDataUnsafe.user.first_name+' 🌸';}
+if (tg && tg.initDataUnsafe && tg.initDataUnsafe.user) {
+  userId = String(tg.initDataUnsafe.user.id);
+  document.getElementById('uname').textContent = tg.initDataUnsafe.user.first_name + ' 🌸';
+  if (sb) {
+    sb.from('user_data').select('*').eq('user_id', userId).single().then(function(r) {
+      if (r.data && r.data.data) {
+        var remote = JSON.parse(r.data.data);
+        D = Object.assign(D, remote);
+        localStorage.setItem('bonoD', JSON.stringify(D));
+        applyTheme(D.theme||'dark');
+        renderMain();renderTasks();renderFin();renderGoals();renderTrips();renderDiary();renderGrat();renderQuotes();
+      }
+    }).catch(function(){});
+  }
+}
 renderMain();renderTasks();renderFin();renderGoals();renderTrips();renderDiary();renderGrat();renderQuotes();
 </script>
 </body>
