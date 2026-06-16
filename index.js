@@ -1,15 +1,17 @@
 const TelegramBot = require('node-telegram-bot-api');
 const Anthropic = require('@anthropic-ai/sdk');
 
-const TELEGRAM_TOKEN = '8941968173:AAEDQa0Lc6g8SwsBqVd0pX2fIjqgIurK8oE';
-const ANTHROPIC_API_KEY = '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';
+const TELEGRAM_TOKEN = 'ТВОЙ_ТОКЕН_ЗДЕСЬ';
+const ANTHROPIC_API_KEY = 'ТВОЙ_API_КЛЮЧ_ЗДЕСЬ';
 
 const bot = new TelegramBot(TELEGRAM_TOKEN, { polling: true });
 const anthropic = new Anthropic({ apiKey: ANTHROPIC_API_KEY });
 
 const userHistories = {};
-const userDailyTasks = {};    // повторяющиеся каждый день
-const userOnceTasks = {};     // одноразовые
+const userDailyTasks = {};
+const userOnceTasks = {};
+const userDailyDone = {};
+const states = {};
 
 const mainMenu = {
   reply_markup: {
@@ -22,17 +24,10 @@ const mainMenu = {
   }
 };
 
-const states = {};
-
-function getTodayTasks(chatId) {
-  const daily = (userDailyTasks[chatId] || []).map(t => ({ text: t, done: false, type: 'daily' }));
-  const once = (userOnceTasks[chatId] || []).map(t => ({ ...t, type: 'once' }));
-  return [...daily, ...once];
-}
-
 bot.onText(/\/start/, (msg) => {
   const chatId = msg.chat.id;
   userHistories[chatId] = [];
+  userDailyDone[chatId] = {};
   bot.sendMessage(chatId, 'Привет! Я Боно 🤖 Твой личный ассистент и помощник.\n\nЯ помогу тебе следить за задачами и всегда готов выслушать 💙', mainMenu);
 });
 
@@ -44,8 +39,8 @@ bot.on('message', async (msg) => {
   if (!userHistories[chatId]) userHistories[chatId] = [];
   if (!userDailyTasks[chatId]) userDailyTasks[chatId] = [];
   if (!userOnceTasks[chatId]) userOnceTasks[chatId] = [];
+  if (!userDailyDone[chatId]) userDailyDone[chatId] = {};
 
-  // Состояния ввода
   if (states[chatId] === 'adding_daily') {
     userDailyTasks[chatId].push(text);
     states[chatId] = null;
@@ -53,13 +48,11 @@ bot.on('message', async (msg) => {
   }
 
   if (states[chatId] === 'adding_once') {
-    if (!userOnceTasks[chatId]) userOnceTasks[chatId] = [];
     userOnceTasks[chatId].push({ text, done: false });
     states[chatId] = null;
     return bot.sendMessage(chatId, `✅ Добавила задачу: *${text}*`, { parse_mode: 'Markdown', ...mainMenu });
   }
 
-  // Кнопки
   if (text === '📋 Мои задачи на сегодня') {
     const daily = userDailyTasks[chatId] || [];
     const once = userOnceTasks[chatId] || [];
@@ -69,24 +62,23 @@ bot.on('message', async (msg) => {
     }
 
     let message = '📋 *Твои задачи на сегодня:*\n\n';
-    if (daily.length > 0) {
-      message += '🔁 *Ежедневные:*\n';
-      daily.forEach((t, i) => message += `⬜ ${i + 1}. ${t}\n`);
-      message += '\n';
-    }
-    if (once.length > 0) {
-      message += '📌 *Одноразовые:*\n';
-      once.forEach((t, i) => message += `${t.done ? '✅' : '⬜'} ${i + 1}. ${t.text}\n`);
-    }
 
-    const buttons = once.map((t, i) => [{
-      text: `${t.done ? '✅' : '⬜'} ${t.text}`,
-      callback_data: `toggle_${i}`
+    const dailyButtons = daily.map((t, i) => [{
+      text: `${userDailyDone[chatId][i] ? '✅' : '⬜'} ${t}`,
+      callback_data: `daily_${i}`
     }]);
+
+    const onceButtons = once.map((t, i) => [{
+      text: `${t.done ? '✅' : '⬜'} ${t.text}`,
+      callback_data: `once_${i}`
+    }]);
+
+    if (daily.length > 0) message += '🔁 *Ежедневные:*\n' + daily.map((t, i) => `${userDailyDone[chatId][i] ? '✅' : '⬜'} ${t}`).join('\n') + '\n\n';
+    if (once.length > 0) message += '📌 *Одноразовые:*\n' + once.map(t => `${t.done ? '✅' : '⬜'} ${t.text}`).join('\n');
 
     return bot.sendMessage(chatId, message, {
       parse_mode: 'Markdown',
-      reply_markup: buttons.length > 0 ? { inline_keyboard: buttons } : mainMenu.reply_markup
+      reply_markup: { inline_keyboard: [...dailyButtons, ...onceButtons] }
     });
   }
 
@@ -104,14 +96,13 @@ bot.on('message', async (msg) => {
     return bot.sendMessage(chatId, 'Слушаю тебя 💙 Расскажи что на душе или спроси что хочешь!', mainMenu);
   }
 
-  // ИИ разговор
   userHistories[chatId].push({ role: 'user', content: text });
   try {
     bot.sendChatAction(chatId, 'typing');
     const response = await anthropic.messages.create({
       model: 'claude-sonnet-4-6',
       max_tokens: 1024,
-      system: 'Ты личный ассистент по имени Боно. Ты умный, дружелюбный и поддерживающий. Отвечаешь на русском языке. Можешь помочь с любыми вопросами — как психолог, советник, помощник. Всегда отвечай тепло и по-человечески.',
+      system: 'Ты личный ассистент по имени Боно. Ты умный, дружелюбный и поддерживающий. Отвечаешь на русском языке. Помогаешь с любыми вопросами — как психолог, советник, помощник. Всегда отвечай тепло и по-человечески.',
       messages: userHistories[chatId],
     });
     const reply = response.content[0].text;
@@ -123,26 +114,37 @@ bot.on('message', async (msg) => {
   }
 });
 
-// Отметить одноразовые задачи
-bot.on('callback_query', (query) => {
+bot.on('callback_query', async (query) => {
   const chatId = query.message.chat.id;
   const data = query.data;
 
-  if (data.startsWith('toggle_')) {
+  if (!userDailyDone[chatId]) userDailyDone[chatId] = {};
+
+  if (data.startsWith('daily_')) {
+    const index = parseInt(data.split('_')[1]);
+    userDailyDone[chatId][index] = !userDailyDone[chatId][index];
+    const done = userDailyDone[chatId][index];
+    bot.answerCallbackQuery(query.id, { text: done ? '✅ Готово!' : '↩️ Убрала отметку' });
+
+    const daily = userDailyTasks[chatId] || [];
+    const once = userOnceTasks[chatId] || [];
+    const dailyButtons = daily.map((t, i) => [{ text: `${userDailyDone[chatId][i] ? '✅' : '⬜'} ${t}`, callback_data: `daily_${i}` }]);
+    const onceButtons = once.map((t, i) => [{ text: `${t.done ? '✅' : '⬜'} ${t.text}`, callback_data: `once_${i}` }]);
+    bot.editMessageReplyMarkup({ inline_keyboard: [...dailyButtons, ...onceButtons] }, { chat_id: chatId, message_id: query.message.message_id });
+  }
+
+  if (data.startsWith('once_')) {
     const index = parseInt(data.split('_')[1]);
     if (userOnceTasks[chatId] && userOnceTasks[chatId][index]) {
       userOnceTasks[chatId][index].done = !userOnceTasks[chatId][index].done;
       const done = userOnceTasks[chatId][index].done;
       bot.answerCallbackQuery(query.id, { text: done ? '✅ Готово!' : '↩️ Убрала отметку' });
 
-      const buttons = userOnceTasks[chatId].map((t, i) => [{
-        text: `${t.done ? '✅' : '⬜'} ${t.text}`,
-        callback_data: `toggle_${i}`
-      }]);
-      bot.editMessageReplyMarkup({ inline_keyboard: buttons }, {
-        chat_id: chatId,
-        message_id: query.message.message_id
-      });
+      const daily = userDailyTasks[chatId] || [];
+      const once = userOnceTasks[chatId] || [];
+      const dailyButtons = daily.map((t, i) => [{ text: `${userDailyDone[chatId][i] ? '✅' : '⬜'} ${t}`, callback_data: `daily_${i}` }]);
+      const onceButtons = once.map((t, i) => [{ text: `${t.done ? '✅' : '⬜'} ${t.text}`, callback_data: `once_${i}` }]);
+      bot.editMessageReplyMarkup({ inline_keyboard: [...dailyButtons, ...onceButtons] }, { chat_id: chatId, message_id: query.message.message_id });
     }
   }
 });
@@ -159,26 +161,36 @@ function scheduleEveningCheck() {
     for (const chatId of Object.keys(userDailyTasks)) {
       const daily = userDailyTasks[chatId] || [];
       const once = userOnceTasks[chatId] || [];
-
       if (daily.length === 0 && once.length === 0) continue;
 
-      const doneOnce = once.filter(t => t.done).length;
-      const totalOnce = once.length;
-      const totalDaily = daily.length;
+      const dailyDone = Object.values(userDailyDone[chatId] || {}).filter(Boolean).length;
+      const onceDone = once.filter(t => t.done).length;
+      const totalTasks = daily.length + once.length;
+      const totalDone = dailyDone + onceDone;
+      const percent = Math.round((totalDone / totalTasks) * 100);
 
-      let summary = `🌙 *Добрый вечер!*\n\nКак прошёл твой день?\n\n`;
-      if (totalDaily > 0) {
-        summary += `🔁 Ежедневных задач: ${totalDaily}\n`;
+      const bar = '🟩'.repeat(Math.round(percent / 10)) + '⬜'.repeat(10 - Math.round(percent / 10));
+
+      let summary = `🌙 *Итоги дня*\n\n`;
+      summary += `${bar}\n*${percent}% выполнено* (${totalDone} из ${totalTasks})\n\n`;
+
+      if (daily.length > 0) {
+        summary += `🔁 *Ежедневные:* ${dailyDone}/${daily.length}\n`;
+        daily.forEach((t, i) => summary += `${userDailyDone[chatId]?.[i] ? '✅' : '❌'} ${t}\n`);
+        summary += '\n';
       }
-      if (totalOnce > 0) {
-        summary += `📌 Одноразовых выполнено: ${doneOnce} из ${totalOnce}\n`;
+      if (once.length > 0) {
+        summary += `📌 *Одноразовые:* ${onceDone}/${once.length}\n`;
+        once.forEach(t => summary += `${t.done ? '✅' : '❌'} ${t.text}\n`);
       }
-      summary += `\nРасскажи — что удалось, что нет? Я проанализирую твой день 💙`;
 
-      bot.sendMessage(chatId, summary, { parse_mode: 'Markdown', ...mainMenu });
+      summary += `\nРасскажи как прошёл день — я выслушаю и помогу 💙`;
 
-      // Сбрасываем одноразовые задачи
+      await bot.sendMessage(chatId, summary, { parse_mode: 'Markdown', ...mainMenu });
+
+      // Сброс на следующий день
       userOnceTasks[chatId] = [];
+      userDailyDone[chatId] = {};
     }
     scheduleEveningCheck();
   }, ms);
