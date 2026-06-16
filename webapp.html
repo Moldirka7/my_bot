@@ -8,140 +8,106 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
 :root[data-theme="dark"] {
-  --bg: #0f0f1a; --bg2: #1a1a2e; --bg3: #16213e;
-  --text: #ffffff; --text2: #888888; --border: #333333;
-  --accent: #667eea; --accent2: #764ba2;
-  --green: #4ade80; --red: #f87171; --yellow: #fbbf24;
+  --bg:#0f0f1a;--bg2:#1a1a2e;--bg3:#16213e;
+  --text:#ffffff;--text2:#888888;--border:#333333;
+  --accent:#667eea;--accent2:#764ba2;
+  --green:#4ade80;--red:#f87171;--yellow:#fbbf24;
 }
 :root[data-theme="light"] {
-  --bg: #f0f2ff; --bg2: #ffffff; --bg3: #e8ebff;
-  --text: #1a1a2e; --text2: #666666; --border: #dddddd;
-  --accent: #667eea; --accent2: #764ba2;
-  --green: #16a34a; --red: #dc2626; --yellow: #d97706;
+  --bg:#f0f2ff;--bg2:#ffffff;--bg3:#e8ebff;
+  --text:#1a1a2e;--text2:#666666;--border:#dddddd;
+  --accent:#667eea;--accent2:#764ba2;
+  --green:#16a34a;--red:#dc2626;--yellow:#d97706;
 }
-* { margin: 0; padding: 0; box-sizing: border-box; transition: background 0.3s, color 0.3s; }
-body { font-family: -apple-system, sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
-
-.header { background: linear-gradient(135deg, var(--accent), var(--accent2)); padding: 16px 20px; display: flex; justify-content: space-between; align-items: center; }
-.header-left h1 { font-size: 20px; font-weight: 700; }
-.header-left p { opacity: 0.85; font-size: 13px; margin-top: 2px; }
-.theme-btn { background: rgba(255,255,255,0.2); border: none; color: white; width: 36px; height: 36px; border-radius: 50%; font-size: 18px; cursor: pointer; }
-
-.tabs { display: flex; background: var(--bg2); border-bottom: 1px solid var(--border); overflow-x: auto; }
-.tab { flex: 0 0 auto; padding: 10px 8px; text-align: center; font-size: 10px; cursor: pointer; color: var(--text2); border-bottom: 2px solid transparent; min-width: 60px; }
-.tab.active { color: var(--accent); border-bottom-color: var(--accent); }
-.tab span { display: block; font-size: 18px; margin-bottom: 2px; }
-
-.page { display: none; padding: 16px; }
-.page.active { display: block; }
-
-/* CARDS */
-.card { background: var(--bg2); border-radius: 16px; padding: 16px; margin-bottom: 12px; }
-.card-gradient { background: linear-gradient(135deg, var(--accent), var(--accent2)); border-radius: 16px; padding: 20px; margin-bottom: 16px; color: white; }
-.section-title { font-size: 12px; color: var(--text2); text-transform: uppercase; letter-spacing: 1px; margin: 16px 0 8px; }
-
-/* BUTTONS */
-.btn-primary { background: linear-gradient(135deg, var(--accent), var(--accent2)); border: none; color: white; width: 100%; padding: 14px; border-radius: 12px; font-size: 15px; font-weight: 600; cursor: pointer; margin-top: 8px; }
-.btn-sm { background: var(--bg3); border: 1px solid var(--border); color: var(--text); padding: 6px 12px; border-radius: 8px; font-size: 13px; cursor: pointer; }
-.btn-danger { background: rgba(248,113,113,0.15); border: 1px solid var(--red); color: var(--red); padding: 6px 12px; border-radius: 8px; font-size: 13px; cursor: pointer; }
-
-/* TASKS */
-.stats-percent { font-size: 48px; font-weight: 800; }
-.stats-bar { background: rgba(255,255,255,0.3); border-radius: 10px; height: 8px; margin: 10px 0; overflow: hidden; }
-.stats-bar-fill { background: #fff; height: 100%; border-radius: 10px; transition: width 0.5s; }
-.task-item { background: var(--bg2); border-radius: 12px; padding: 14px 16px; margin-bottom: 8px; display: flex; align-items: center; gap: 12px; cursor: pointer; }
-.task-check { width: 24px; height: 24px; border-radius: 50%; border: 2px solid var(--accent); display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-size: 12px; }
-.task-item.done .task-check { background: var(--accent); border-color: var(--accent); }
-.task-item.done .task-text { text-decoration: line-through; opacity: 0.5; }
-.task-text { font-size: 15px; flex: 1; }
-.task-badge { font-size: 10px; background: var(--bg3); padding: 2px 8px; border-radius: 10px; color: var(--text2); }
-
-/* INPUTS */
-textarea { background: var(--bg2); border: 1px solid var(--border); border-radius: 12px; color: var(--text); width: 100%; padding: 12px; font-size: 14px; resize: none; height: 100px; margin-bottom: 8px; }
-textarea:focus { outline: none; border-color: var(--accent); }
-select { background: var(--bg2); border: 1px solid var(--border); border-radius: 12px; color: var(--text); width: 100%; padding: 12px; font-size: 14px; margin-bottom: 8px; appearance: none; }
-input[type=text], input[type=number], input[type=date] { background: var(--bg2); border: 1px solid var(--border); border-radius: 12px; color: var(--text); width: 100%; padding: 12px; font-size: 14px; margin-bottom: 8px; }
-input:focus { outline: none; border-color: var(--accent); }
-
-/* FINANCE */
-.fin-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 12px; }
-.fin-card { background: var(--bg2); border-radius: 12px; padding: 14px; text-align: center; }
-.fin-card.income { border-top: 3px solid var(--green); }
-.fin-card.expense { border-top: 3px solid var(--red); }
-.fin-card.balance { border-top: 3px solid var(--accent); grid-column: span 2; }
-.fin-card.deposit { border-top: 3px solid var(--yellow); grid-column: span 2; }
-.fin-amount { font-size: 20px; font-weight: 700; margin-top: 4px; }
-.fin-label { font-size: 12px; color: var(--text2); }
-.income .fin-amount { color: var(--green); }
-.expense .fin-amount { color: var(--red); }
-.balance .fin-amount { color: var(--accent); }
-.deposit .fin-amount { color: var(--yellow); }
-.tx-item { background: var(--bg2); border-radius: 12px; padding: 12px 16px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; }
-.tx-amount { font-size: 16px; font-weight: 600; }
-.tx-amount.plus { color: var(--green); }
-.tx-amount.minus { color: var(--red); }
-.tx-amount.deposit { color: var(--yellow); }
-.type-toggle { display: flex; background: var(--bg2); border-radius: 12px; padding: 4px; margin-bottom: 12px; gap: 4px; }
-.type-btn { flex: 1; padding: 8px; border: none; border-radius: 8px; background: transparent; color: var(--text2); cursor: pointer; font-size: 13px; }
-.type-btn.active { background: var(--accent); color: white; }
-
-/* GOALS */
-.goal-card { background: var(--bg2); border-radius: 16px; padding: 16px; margin-bottom: 12px; border-left: 4px solid var(--accent); }
-.goal-card.overdue { border-left-color: var(--red); }
-.goal-progress-bar { background: var(--bg3); border-radius: 10px; height: 8px; margin: 8px 0; overflow: hidden; }
-.goal-progress-fill { background: linear-gradient(90deg, var(--accent), var(--accent2)); height: 100%; border-radius: 10px; transition: width 0.5s; }
-
-/* TRIPS */
-.trip-card { background: var(--bg2); border-radius: 16px; padding: 16px; margin-bottom: 12px; border: 1px solid var(--border); }
-.trip-name { font-size: 17px; font-weight: 600; }
-.countdown { font-size: 28px; font-weight: 800; color: var(--accent); }
-.countdown-label { font-size: 12px; color: var(--text2); }
-.checklist-item { display: flex; align-items: center; gap: 10px; padding: 8px 0; border-bottom: 1px solid var(--border); cursor: pointer; }
-.checklist-check { width: 20px; height: 20px; border-radius: 4px; border: 2px solid var(--accent); display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-size: 11px; }
-.checklist-item.done .checklist-check { background: var(--accent); }
-.checklist-item.done span { text-decoration: line-through; opacity: 0.5; }
-.place-item { background: var(--bg3); border-radius: 10px; padding: 10px 14px; margin-bottom: 6px; display: flex; justify-content: space-between; align-items: center; }
-
-/* DIARY */
-.diary-entry { background: var(--bg2); border-radius: 12px; padding: 14px; margin-bottom: 8px; }
-.diary-topic { font-size: 11px; color: var(--accent); margin-bottom: 4px; }
-.diary-text { font-size: 14px; line-height: 1.5; }
-.diary-date { font-size: 11px; color: var(--text2); margin-top: 6px; }
-.gratitude-item { background: var(--bg2); border-radius: 12px; padding: 12px; margin-bottom: 6px; font-size: 14px; }
-.gratitude-streak { font-size: 36px; font-weight: 800; color: var(--yellow); }
-
-/* QUOTES */
-.quote-card { background: linear-gradient(135deg, var(--bg2), var(--bg3)); border-radius: 16px; padding: 24px; margin-bottom: 12px; border-left: 4px solid var(--accent); text-align: center; }
-.quote-text { font-size: 16px; line-height: 1.6; font-style: italic; margin-bottom: 8px; }
-.quote-author { font-size: 13px; color: var(--text2); }
-
-/* BRIEFING */
-.briefing-card { background: linear-gradient(135deg, var(--accent), var(--accent2)); border-radius: 16px; padding: 20px; margin-bottom: 12px; color: white; }
-.weather-big { font-size: 48px; font-weight: 800; }
-.briefing-row { display: flex; justify-content: space-between; background: rgba(255,255,255,0.15); border-radius: 12px; padding: 12px; margin-top: 12px; }
-.briefing-item { text-align: center; }
-.briefing-item-val { font-size: 20px; font-weight: 700; }
-.briefing-item-label { font-size: 11px; opacity: 0.8; }
-
-/* MODAL */
-.modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.7); z-index: 100; align-items: flex-end; }
-.modal.open { display: flex; }
-.modal-content { background: var(--bg2); border-radius: 20px 20px 0 0; padding: 24px; width: 100%; max-height: 85vh; overflow-y: auto; }
-.modal-title { font-size: 18px; font-weight: 700; margin-bottom: 16px; }
-.modal-close { float: right; background: none; border: none; color: var(--text2); font-size: 24px; cursor: pointer; margin-top: -4px; }
-
-.analysis-box { background: var(--bg3); border-radius: 12px; padding: 14px; margin-top: 12px; border-left: 3px solid var(--accent); }
-.analysis-title { font-size: 12px; color: var(--accent); margin-bottom: 6px; }
-.analysis-text { font-size: 13px; line-height: 1.6; color: var(--text2); white-space: pre-line; }
-
-.badge-red { background: rgba(248,113,113,0.15); color: var(--red); border-radius: 8px; padding: 4px 10px; font-size: 12px; display: inline-block; }
-.badge-green { background: rgba(74,222,128,0.15); color: var(--green); border-radius: 8px; padding: 4px 10px; font-size: 12px; display: inline-block; }
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:-apple-system,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;}
+.header{background:linear-gradient(135deg,var(--accent),var(--accent2));padding:16px 20px;display:flex;justify-content:space-between;align-items:center;}
+.header h1{font-size:20px;font-weight:700;color:white;}
+.header p{opacity:0.85;font-size:13px;margin-top:2px;color:white;}
+.theme-btn{background:rgba(255,255,255,0.2);border:none;color:white;width:36px;height:36px;border-radius:50%;font-size:18px;cursor:pointer;}
+.tabs{display:flex;background:var(--bg2);border-bottom:1px solid var(--border);overflow-x:auto;}
+.tab{flex:0 0 auto;padding:10px 8px;text-align:center;font-size:10px;cursor:pointer;color:var(--text2);border-bottom:2px solid transparent;min-width:58px;}
+.tab.active{color:var(--accent);border-bottom-color:var(--accent);}
+.tab span{display:block;font-size:18px;margin-bottom:2px;}
+.page{display:none;padding:16px;}
+.page.active{display:block;}
+.card{background:var(--bg2);border-radius:16px;padding:16px;margin-bottom:12px;}
+.card-gradient{background:linear-gradient(135deg,var(--accent),var(--accent2));border-radius:16px;padding:20px;margin-bottom:16px;color:white;}
+.section-title{font-size:12px;color:var(--text2);text-transform:uppercase;letter-spacing:1px;margin:16px 0 8px;}
+.btn-primary{background:linear-gradient(135deg,var(--accent),var(--accent2));border:none;color:white;width:100%;padding:14px;border-radius:12px;font-size:15px;font-weight:600;cursor:pointer;margin-top:8px;}
+.btn-sm{background:var(--bg3);border:1px solid var(--border);color:var(--text);padding:6px 12px;border-radius:8px;font-size:13px;cursor:pointer;}
+.btn-danger{background:rgba(248,113,113,0.15);border:1px solid var(--red);color:var(--red);padding:4px 10px;border-radius:8px;font-size:12px;cursor:pointer;}
+.stats-percent{font-size:48px;font-weight:800;}
+.stats-bar{background:rgba(255,255,255,0.3);border-radius:10px;height:8px;margin:10px 0;overflow:hidden;}
+.stats-bar-fill{background:#fff;height:100%;border-radius:10px;transition:width 0.5s;}
+.task-item{background:var(--bg2);border-radius:12px;padding:14px 16px;margin-bottom:8px;display:flex;align-items:center;gap:12px;cursor:pointer;border:1px solid var(--border);}
+.task-check{width:24px;height:24px;border-radius:50%;border:2px solid var(--accent);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:12px;}
+.task-item.done .task-check{background:var(--accent);border-color:var(--accent);color:white;}
+.task-item.done .task-text{text-decoration:line-through;opacity:0.5;}
+.task-text{font-size:15px;flex:1;}
+.task-badge{font-size:10px;background:var(--bg3);padding:2px 8px;border-radius:10px;color:var(--text2);}
+textarea{background:var(--bg2);border:1px solid var(--border);border-radius:12px;color:var(--text);width:100%;padding:12px;font-size:14px;resize:none;height:100px;margin-bottom:8px;}
+textarea:focus{outline:none;border-color:var(--accent);}
+select{background:var(--bg2);border:1px solid var(--border);border-radius:12px;color:var(--text);width:100%;padding:12px;font-size:14px;margin-bottom:8px;appearance:none;}
+input[type=text],input[type=number],input[type=date]{background:var(--bg2);border:1px solid var(--border);border-radius:12px;color:var(--text);width:100%;padding:12px;font-size:14px;margin-bottom:8px;}
+input:focus{outline:none;border-color:var(--accent);}
+.fin-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px;}
+.fin-card{background:var(--bg2);border-radius:12px;padding:14px;text-align:center;}
+.fin-card.income{border-top:3px solid var(--green);}
+.fin-card.expense{border-top:3px solid var(--red);}
+.fin-card.balance{border-top:3px solid var(--accent);grid-column:span 2;}
+.fin-card.deposit{border-top:3px solid var(--yellow);grid-column:span 2;}
+.fin-amount{font-size:20px;font-weight:700;margin-top:4px;}
+.fin-label{font-size:12px;color:var(--text2);}
+.income .fin-amount{color:var(--green);}
+.expense .fin-amount{color:var(--red);}
+.balance .fin-amount{color:var(--accent);}
+.deposit .fin-amount{color:var(--yellow);}
+.tx-item{background:var(--bg2);border-radius:12px;padding:12px 16px;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center;border:1px solid var(--border);}
+.tx-amount{font-size:16px;font-weight:600;}
+.tx-amount.plus{color:var(--green);}
+.tx-amount.minus{color:var(--red);}
+.type-toggle{display:flex;background:var(--bg2);border-radius:12px;padding:4px;margin-bottom:12px;gap:4px;border:1px solid var(--border);}
+.type-btn{flex:1;padding:8px;border:none;border-radius:8px;background:transparent;color:var(--text2);cursor:pointer;font-size:13px;}
+.type-btn.active{background:var(--accent);color:white;}
+.goal-card{background:var(--bg2);border-radius:16px;padding:16px;margin-bottom:12px;border-left:4px solid var(--accent);border:1px solid var(--border);border-left:4px solid var(--accent);}
+.goal-card.overdue{border-left-color:var(--red);}
+.goal-progress-bar{background:var(--bg3);border-radius:10px;height:8px;margin:8px 0;overflow:hidden;}
+.goal-progress-fill{background:linear-gradient(90deg,var(--accent),var(--accent2));height:100%;border-radius:10px;}
+.trip-card{background:var(--bg2);border-radius:16px;padding:16px;margin-bottom:12px;border:1px solid var(--border);}
+.countdown{font-size:32px;font-weight:800;color:var(--accent);}
+.checklist-item{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--border);cursor:pointer;}
+.checklist-check{width:20px;height:20px;border-radius:4px;border:2px solid var(--accent);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:11px;}
+.checklist-item.done .checklist-check{background:var(--accent);color:white;}
+.checklist-item.done span{text-decoration:line-through;opacity:0.5;}
+.place-item{background:var(--bg3);border-radius:10px;padding:10px 14px;margin-bottom:6px;display:flex;justify-content:space-between;align-items:center;}
+.diary-entry{background:var(--bg2);border-radius:12px;padding:14px;margin-bottom:8px;border:1px solid var(--border);}
+.diary-topic{font-size:11px;color:var(--accent);margin-bottom:4px;}
+.diary-text{font-size:14px;line-height:1.5;}
+.diary-date{font-size:11px;color:var(--text2);margin-top:6px;}
+.gratitude-streak{font-size:40px;font-weight:800;color:var(--yellow);}
+.quote-card{background:var(--bg2);border-radius:16px;padding:20px;margin-bottom:10px;border-left:4px solid var(--accent);}
+.quote-text{font-size:15px;line-height:1.6;font-style:italic;margin-bottom:8px;}
+.quote-author{font-size:13px;color:var(--text2);}
+.modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:100;align-items:flex-end;}
+.modal.open{display:flex;}
+.modal-content{background:var(--bg2);border-radius:20px 20px 0 0;padding:24px;width:100%;max-height:85vh;overflow-y:auto;}
+.modal-title{font-size:18px;font-weight:700;margin-bottom:16px;}
+.modal-close{float:right;background:none;border:none;color:var(--text2);font-size:24px;cursor:pointer;margin-top:-4px;}
+.analysis-box{background:var(--bg3);border-radius:12px;padding:14px;margin-top:12px;border-left:3px solid var(--accent);}
+.badge-red{background:rgba(248,113,113,0.15);color:var(--red);border-radius:8px;padding:3px 8px;font-size:12px;display:inline-block;}
+.badge-green{background:rgba(74,222,128,0.15);color:var(--green);border-radius:8px;padding:3px 8px;font-size:12px;display:inline-block;}
+.briefing-row{display:flex;justify-content:space-between;background:rgba(255,255,255,0.15);border-radius:12px;padding:12px;margin-top:12px;}
+.briefing-item{text-align:center;}
+.briefing-val{font-size:22px;font-weight:700;}
+.briefing-label{font-size:11px;opacity:0.8;}
+.evening-item{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border);font-size:14px;}
 </style>
 </head>
 <body>
 
 <div class="header">
-  <div class="header-left">
+  <div>
     <h1>🤖 Боно App</h1>
     <p id="userName">Загрузка...</p>
   </div>
@@ -149,7 +115,7 @@ input:focus { outline: none; border-color: var(--accent); }
 </div>
 
 <div class="tabs">
-  <div class="tab active" onclick="showPage('briefing',this)"><span>🌅</span>Утро</div>
+  <div class="tab active" onclick="showPage('briefing',this)"><span>🌅</span>Главная</div>
   <div class="tab" onclick="showPage('tasks',this)"><span>✅</span>Задачи</div>
   <div class="tab" onclick="showPage('finance',this)"><span>💰</span>Финансы</div>
   <div class="tab" onclick="showPage('goals',this)"><span>🎯</span>Цели</div>
@@ -158,30 +124,33 @@ input:focus { outline: none; border-color: var(--accent); }
   <div class="tab" onclick="showPage('quotes',this)"><span>💫</span>Цитаты</div>
 </div>
 
-<!-- УТРЕННИЙ БРИФИНГ -->
+<!-- ГЛАВНАЯ -->
 <div class="page active" id="page-briefing">
-  <div class="briefing-card">
-    <div style="font-size:13px;opacity:0.8" id="briefingDate">Загрузка...</div>
-    <div style="font-size:18px;font-weight:700;margin:4px 0" id="briefingGreeting">Доброе утро!</div>
-    <div style="display:flex;align-items:center;gap:12px;margin-top:12px">
-      <div class="weather-big" id="weatherTemp">--°</div>
-      <div>
-        <div style="font-size:16px" id="weatherDesc">Уральск</div>
-        <div style="font-size:13px;opacity:0.8" id="weatherFeels"></div>
-      </div>
-    </div>
+  <div class="card-gradient" id="briefingCard">
+    <div style="font-size:13px;opacity:0.8" id="briefingDate"></div>
+    <div style="font-size:22px;font-weight:700;margin:6px 0" id="briefingGreeting"></div>
+    <div style="font-size:14px;opacity:0.9;line-height:1.5" id="briefingMsg"></div>
     <div class="briefing-row">
-      <div class="briefing-item"><div class="briefing-item-val" id="bTaskCount">0</div><div class="briefing-item-label">Задач</div></div>
-      <div class="briefing-item"><div class="briefing-item-val" id="bGoalCount">0</div><div class="briefing-item-label">Целей</div></div>
-      <div class="briefing-item"><div class="briefing-item-val" id="bTripCount">0</div><div class="briefing-item-label">Поездок</div></div>
-      <div class="briefing-item"><div class="briefing-item-val" id="bGratStreak">0</div><div class="briefing-item-label">Дней 🙏</div></div>
+      <div class="briefing-item"><div class="briefing-val" id="bTask">0</div><div class="briefing-label">Задач</div></div>
+      <div class="briefing-item"><div class="briefing-val" id="bGoal">0</div><div class="briefing-label">Целей</div></div>
+      <div class="briefing-item"><div class="briefing-val" id="bTrip">0</div><div class="briefing-label">Поездок</div></div>
+      <div class="briefing-item"><div class="briefing-val" id="bGrat">0</div><div class="briefing-label">Дней 🙏</div></div>
     </div>
   </div>
-  <div class="card" id="briefingQuote">
-    <div style="font-size:12px;color:var(--text2);margin-bottom:6px">💫 Цитата дня</div>
-    <div id="briefingQuoteText" style="font-size:14px;line-height:1.6;font-style:italic"></div>
+
+  <div id="eveningSection" style="display:none">
+    <div class="card">
+      <div style="font-size:14px;font-weight:600;margin-bottom:12px">📊 Итоги дня</div>
+      <div id="eveningTaskList"></div>
+    </div>
   </div>
-  <div class="card" id="briefingTasks">
+
+  <div class="card" id="briefingQuoteCard">
+    <div style="font-size:12px;color:var(--text2);margin-bottom:6px">💫 Цитата дня</div>
+    <div id="briefingQuoteText" style="font-size:14px;line-height:1.6;font-style:italic;color:var(--text)"></div>
+  </div>
+
+  <div class="card">
     <div style="font-size:12px;color:var(--text2);margin-bottom:8px">✅ Задачи на сегодня</div>
     <div id="briefingTasksList"></div>
   </div>
@@ -192,7 +161,7 @@ input:focus { outline: none; border-color: var(--accent); }
   <div class="card-gradient" style="text-align:center">
     <div class="stats-percent" id="statsPercent">0%</div>
     <div class="stats-bar"><div class="stats-bar-fill" id="statsBar" style="width:0%"></div></div>
-    <div style="font-size:13px;opacity:0.9" id="statsText">Добавь задачи на сегодня</div>
+    <div style="font-size:13px;opacity:0.9" id="statsText">Добавь задачи</div>
   </div>
   <div class="section-title">🔁 Ежедневные</div>
   <div id="dailyList"></div>
@@ -208,15 +177,15 @@ input:focus { outline: none; border-color: var(--accent); }
     <div class="fin-card income"><div class="fin-label">Доходы</div><div class="fin-amount" id="totalIncome">0 ₸</div></div>
     <div class="fin-card expense"><div class="fin-label">Расходы</div><div class="fin-amount" id="totalExpense">0 ₸</div></div>
     <div class="fin-card balance"><div class="fin-label">Баланс</div><div class="fin-amount" id="totalBalance">0 ₸</div></div>
-    <div class="fin-card deposit" style="grid-column:span 2">
+    <div class="fin-card deposit">
       <div class="fin-label">💰 Депозит / Накопления</div>
       <div class="fin-amount" id="totalDeposit">0 ₸</div>
-      <button class="btn-sm" style="margin-top:8px" onclick="openModal('addDeposit')">+ Пополнить депозит</button>
+      <button class="btn-sm" style="margin-top:8px" onclick="openModal('addDeposit')">+ Пополнить</button>
     </div>
   </div>
   <div id="analysisBox" class="analysis-box" style="display:none">
-    <div class="analysis-title">🤖 Анализ Боно</div>
-    <div class="analysis-text" id="analysisText"></div>
+    <div style="font-size:12px;color:var(--accent);margin-bottom:6px">🤖 Анализ Боно</div>
+    <div style="font-size:13px;line-height:1.6;color:var(--text2);white-space:pre-line" id="analysisText"></div>
   </div>
   <button class="btn-primary" onclick="openModal('addFinance')" style="margin-bottom:12px">+ Добавить транзакцию</button>
   <div class="section-title">История</div>
@@ -238,8 +207,8 @@ input:focus { outline: none; border-color: var(--accent); }
 <!-- ДНЕВНИК -->
 <div class="page" id="page-diary">
   <div class="type-toggle">
-    <button class="type-btn active" onclick="setDiaryTab('diary', this)">📔 Дневник</button>
-    <button class="type-btn" onclick="setDiaryTab('gratitude', this)">🙏 Благодарности</button>
+    <button class="type-btn active" id="diaryBtn" onclick="setDiaryTab('diary')">📔 Дневник</button>
+    <button class="type-btn" id="gratBtn" onclick="setDiaryTab('gratitude')">🙏 Благодарности</button>
   </div>
   <div id="diarySection">
     <select id="entryTopic">
@@ -257,7 +226,7 @@ input:focus { outline: none; border-color: var(--accent); }
       <div id="gratStatus" style="margin-top:8px"></div>
     </div>
     <div id="gratTodaySection">
-      <div style="font-size:14px;margin-bottom:8px">Сегодняшние благодарности (минимум 3):</div>
+      <div style="font-size:14px;margin-bottom:12px;font-weight:600">Сегодняшние благодарности (минимум 3):</div>
       <input type="text" id="grat1" placeholder="1. Я благодарна за...">
       <input type="text" id="grat2" placeholder="2. Я благодарна за...">
       <input type="text" id="grat3" placeholder="3. Я благодарна за...">
@@ -270,8 +239,6 @@ input:focus { outline: none; border-color: var(--accent); }
 
 <!-- ЦИТАТЫ -->
 <div class="page" id="page-quotes">
-  <div id="quoteOfDay"></div>
-  <div class="section-title">Все цитаты</div>
   <div id="allQuotes"></div>
 </div>
 
@@ -284,7 +251,6 @@ input:focus { outline: none; border-color: var(--accent); }
     <button class="btn-primary" onclick="addDailyTask()">Добавить</button>
   </div>
 </div>
-
 <div class="modal" id="modal-addOnce">
   <div class="modal-content">
     <button class="modal-close" onclick="closeModal('addOnce')">×</button>
@@ -293,7 +259,6 @@ input:focus { outline: none; border-color: var(--accent); }
     <button class="btn-primary" onclick="addOnceTask()">Добавить</button>
   </div>
 </div>
-
 <div class="modal" id="modal-addFinance">
   <div class="modal-content">
     <button class="modal-close" onclick="closeModal('addFinance')">×</button>
@@ -312,7 +277,6 @@ input:focus { outline: none; border-color: var(--accent); }
     <button class="btn-primary" onclick="addTransaction()">Добавить</button>
   </div>
 </div>
-
 <div class="modal" id="modal-addDeposit">
   <div class="modal-content">
     <button class="modal-close" onclick="closeModal('addDeposit')">×</button>
@@ -322,14 +286,13 @@ input:focus { outline: none; border-color: var(--accent); }
     <button class="btn-primary" onclick="addDeposit()">Сохранить</button>
   </div>
 </div>
-
 <div class="modal" id="modal-addGoal">
   <div class="modal-content">
     <button class="modal-close" onclick="closeModal('addGoal')">×</button>
     <div class="modal-title">Новая цель</div>
     <div class="type-toggle">
-      <button class="type-btn active" id="btn-goal-fin" onclick="setGoalType('financial')">💰 Финансовая</button>
-      <button class="type-btn" id="btn-goal-other" onclick="setGoalType('other')">🌱 Другая</button>
+      <button class="type-btn active" id="btnGoalFin" onclick="setGoalType('financial')">💰 Финансовая</button>
+      <button class="type-btn" id="btnGoalOther" onclick="setGoalType('other')">🌱 Другая</button>
     </div>
     <input type="text" id="goalName" placeholder="Название цели">
     <div id="goalFinSection">
@@ -337,13 +300,12 @@ input:focus { outline: none; border-color: var(--accent); }
       <input type="number" id="goalSaved" placeholder="Уже накоплено ₸">
     </div>
     <div id="goalOtherSection" style="display:none">
-      <textarea id="goalDesc" placeholder="Опиши свою цель подробнее..." style="height:80px"></textarea>
+      <textarea id="goalDesc" placeholder="Опиши свою цель..." style="height:80px"></textarea>
     </div>
-    <input type="date" id="goalDeadline" placeholder="Дедлайн">
+    <input type="date" id="goalDeadline">
     <button class="btn-primary" onclick="addGoal()">Создать цель</button>
   </div>
 </div>
-
 <div class="modal" id="modal-goalProgress">
   <div class="modal-content">
     <button class="modal-close" onclick="closeModal('goalProgress')">×</button>
@@ -352,26 +314,24 @@ input:focus { outline: none; border-color: var(--accent); }
     <button class="btn-primary" onclick="saveGoalProgress()">Сохранить</button>
   </div>
 </div>
-
 <div class="modal" id="modal-addTrip">
   <div class="modal-content">
     <button class="modal-close" onclick="closeModal('addTrip')">×</button>
     <div class="modal-title">Новая поездка</div>
-    <input type="text" id="tripName" placeholder="Куда едешь? (Испания, Дубай...)">
-    <input type="date" id="tripDate" placeholder="Дата поездки">
+    <input type="text" id="tripName" placeholder="Куда едешь?">
+    <input type="date" id="tripDate">
     <input type="number" id="tripBudget" placeholder="Бюджет в тенге">
     <button class="btn-primary" onclick="addTrip()">Создать</button>
   </div>
 </div>
-
 <div class="modal" id="modal-tripDetail">
   <div class="modal-content">
     <button class="modal-close" onclick="closeModal('tripDetail')">×</button>
     <div class="modal-title" id="tripDetailTitle"></div>
     <div class="type-toggle">
-      <button class="type-btn active" onclick="setTripTab('checklist', this)">☑️ Чеклист</button>
-      <button class="type-btn" onclick="setTripTab('places', this)">📍 Места</button>
-      <button class="type-btn" onclick="setTripTab('tickets', this)">🎫 Билеты</button>
+      <button class="type-btn active" id="tripTabChecklist" onclick="setTripTab('checklist')">☑️ Чеклист</button>
+      <button class="type-btn" id="tripTabPlaces" onclick="setTripTab('places')">📍 Места</button>
+      <button class="type-btn" id="tripTabTickets" onclick="setTripTab('tickets')">🎫 Билеты</button>
     </div>
     <div id="tripTabContent"></div>
   </div>
@@ -382,7 +342,6 @@ const SUPABASE_URL = 'rbaepivpvkejdjyrxuzo';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJiYWVwaXZwdmtlamRqeXJ4dXpvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE2MjMzNDMsImV4cCI6MjA5NzE5OTM0M30.MQLxXgKsUTcA3CPzwav7tXfr5LhtZFSLCaUaMF5hRzo';
 const { createClient } = supabase;
 const db = createClient(SUPABASE_URL, SUPABASE_KEY);
-
 const tg = window.Telegram?.WebApp;
 if (tg) tg.expand();
 
@@ -390,33 +349,37 @@ let userId = null;
 let currentTripIndex = null;
 let currentGoalIndex = null;
 let currentGoalType = 'financial';
-let currentDiaryTab = 'diary';
+let currentTripTab = 'checklist';
 
 let data = {
-  dailyTasks: [], onceTasks: [], dailyDone: {},
-  finance: [], deposit: 0, depositHistory: [],
-  goals: [], trips: [], diary: [], gratitude: [],
-  finType: 'expense', theme: 'dark'
+  dailyTasks:[], onceTasks:[], dailyDone:{},
+  finance:[], deposit:0, depositHistory:[],
+  goals:[], trips:[], diary:[], gratitude:[],
+  finType:'expense', theme:'dark'
 };
 
 const quotes = [
-  { text: "Каждый день — это новая возможность стать лучше, чем ты была вчера.", author: "— Аноним" },
-  { text: "Успех — это сумма небольших усилий, повторяемых день за днём.", author: "— Роберт Кольер" },
-  { text: "Верь в себя и всё станет возможным.", author: "— Аноним" },
-  { text: "Не жди. Время никогда не будет «правильным».", author: "— Наполеон Хилл" },
-  { text: "Твои ограничения — это только твои мысли.", author: "— Аноним" },
-  { text: "Делай сегодня то, что другие не хотят. Живи завтра так, как другие не могут.", author: "— Джерри Райс" },
-  { text: "Мечты не работают, если ты не работаешь.", author: "— Джон Максвелл" },
-  { text: "Маленькие шаги каждый день приводят к большим результатам.", author: "— Аноним" },
-  { text: "Ты сильнее, чем думаешь.", author: "— Аноним" },
-  { text: "Благодарность превращает то, что мы имеем, в достаточное.", author: "— Аноним" },
+  {text:"Каждый день — это новая возможность стать лучше, чем ты была вчера.",author:"— Аноним"},
+  {text:"Успех — это сумма небольших усилий, повторяемых день за днём.",author:"— Роберт Кольер"},
+  {text:"Верь в себя и всё станет возможным.",author:"— Аноним"},
+  {text:"Не жди. Время никогда не будет «правильным».",author:"— Наполеон Хилл"},
+  {text:"Твои ограничения — это только твои мысли.",author:"— Аноним"},
+  {text:"Делай сегодня то, что другие не хотят. Живи завтра так, как другие не могут.",author:"— Джерри Райс"},
+  {text:"Мечты не работают, если ты не работаешь.",author:"— Джон Максвелл"},
+  {text:"Маленькие шаги каждый день приводят к большим результатам.",author:"— Аноним"},
+  {text:"Ты сильнее, чем думаешь.",author:"— Аноним"},
+  {text:"Благодарность превращает то, что мы имеем, в достаточное.",author:"— Аноним"},
+  {text:"Начни там, где ты есть. Используй то, что есть. Делай что можешь.",author:"— Артур Эш"},
+  {text:"Жизнь — это то, что происходит, пока ты строишь другие планы.",author:"— Джон Леннон"},
+  {text:"Единственный способ делать великую работу — любить то, что делаешь.",author:"— Стив Джобс"},
+  {text:"Не важно, как медленно ты идёшь, главное — не останавливаться.",author:"— Конфуций"},
+  {text:"Счастье — это не судьба, а выбор.",author:"— Аноним"},
 ];
 
 async function init() {
   if (tg?.initDataUnsafe?.user) {
     userId = String(tg.initDataUnsafe.user.id);
-    const name = tg.initDataUnsafe.user.first_name;
-    document.getElementById('userName').textContent = name + ' 🌸';
+    document.getElementById('userName').textContent = tg.initDataUnsafe.user.first_name + ' 🌸';
   } else {
     userId = 'test_user';
     document.getElementById('userName').textContent = 'Молдир 🌸';
@@ -424,29 +387,22 @@ async function init() {
   await loadData();
   applyTheme(data.theme || 'dark');
   renderAll();
-  loadWeather();
 }
 
 async function loadData() {
   try {
-    const { data: rows } = await db.from('user_data').select('*').eq('user_id', userId).single();
-    if (rows?.data) {
-      const loaded = JSON.parse(rows.data);
-      data = { ...data, ...loaded };
-    }
+    const {data:rows} = await db.from('user_data').select('*').eq('user_id', userId).single();
+    if (rows?.data) data = {...data, ...JSON.parse(rows.data)};
   } catch(e) {}
 }
 
 async function saveData() {
   try {
-    const { data: existing } = await db.from('user_data').select('id').eq('user_id', userId).single();
-    if (existing) {
-      await db.from('user_data').update({ data: JSON.stringify(data) }).eq('user_id', userId);
-    } else {
-      await db.from('user_data').insert({ user_id: userId, data: JSON.stringify(data) });
-    }
+    const {data:ex} = await db.from('user_data').select('id').eq('user_id', userId).single();
+    if (ex) await db.from('user_data').update({data: JSON.stringify(data)}).eq('user_id', userId);
+    else await db.from('user_data').insert({user_id: userId, data: JSON.stringify(data)});
   } catch(e) {
-    try { await db.from('user_data').insert({ user_id: userId, data: JSON.stringify(data) }); } catch(e2) {}
+    try { await db.from('user_data').insert({user_id: userId, data: JSON.stringify(data)}); } catch(e2){}
   }
 }
 
@@ -481,72 +437,93 @@ function applyTheme(theme) {
   document.getElementById('themeBtn').textContent = theme === 'dark' ? '☀️' : '🌙';
 }
 
-// WEATHER
-async function loadWeather() {
-  try {
-    const res = await fetch('https://wttr.in/Uralsk?format=j1');
-    const json = await res.json();
-    const current = json.current_condition[0];
-    const temp = current.temp_C;
-    const desc = current.lang_ru?.[0]?.value || current.weatherDesc[0].value;
-    const feels = current.FeelsLikeC;
-    document.getElementById('weatherTemp').textContent = temp + '°';
-    document.getElementById('weatherDesc').textContent = desc;
-    document.getElementById('weatherFeels').textContent = 'Ощущается как ' + feels + '°';
-  } catch(e) {
-    document.getElementById('weatherTemp').textContent = '--°';
-    document.getElementById('weatherDesc').textContent = 'Уральск';
-  }
-}
-
 // BRIEFING
 function renderBriefing() {
   const now = new Date();
   const hour = now.getHours();
-  let greeting = hour < 12 ? 'Доброе утро, Молдир! ☀️' : hour < 17 ? 'Добрый день, Молдир! 🌤' : 'Добрый вечер, Молдир! 🌙';
-  document.getElementById('briefingGreeting').textContent = greeting;
-  document.getElementById('briefingDate').textContent = now.toLocaleDateString('ru', { weekday: 'long', day: 'numeric', month: 'long' });
+  const isEvening = hour >= 20;
+  const dateStr = now.toLocaleDateString('ru', {weekday:'long', day:'numeric', month:'long'});
+  document.getElementById('briefingDate').textContent = dateStr;
 
-  const total = (data.dailyTasks||[]).length + (data.onceTasks||[]).length;
-  const done = (data.dailyTasks||[]).filter((_,i) => data.dailyDone[i]).length + (data.onceTasks||[]).filter(t=>t.done).length;
-  document.getElementById('bTaskCount').textContent = total - done;
-  document.getElementById('bGoalCount').textContent = (data.goals||[]).length;
-  document.getElementById('bTripCount').textContent = (data.trips||[]).length;
-  document.getElementById('bGratStreak').textContent = getGratStreak();
+  const daily = data.dailyTasks || [];
+  const once = data.onceTasks || [];
+  const totalTasks = daily.length + once.length;
+  const doneTasks = daily.filter((_,i) => data.dailyDone[i]).length + once.filter(t=>t.done).length;
+
+  document.getElementById('bTask').textContent = totalTasks - doneTasks;
+  document.getElementById('bGoal').textContent = (data.goals||[]).length;
+  document.getElementById('bTrip').textContent = (data.trips||[]).length;
+  document.getElementById('bGrat').textContent = getGratStreak();
 
   const todayQuote = quotes[now.getDate() % quotes.length];
   document.getElementById('briefingQuoteText').textContent = '"' + todayQuote.text + '" ' + todayQuote.author;
 
-  const tasks = [...(data.dailyTasks||[]).map((t,i)=>({text:t,done:data.dailyDone[i]})), ...(data.onceTasks||[])];
+  if (isEvening) {
+    // ВЕЧЕРНИЙ РЕЖИМ
+    document.getElementById('briefingGreeting').textContent = 'Добрый вечер, Молдир! 🌙';
+    const pct = totalTasks > 0 ? Math.round(doneTasks/totalTasks*100) : 0;
+    let msg = `Сегодня ты выполнила ${doneTasks} из ${totalTasks} задач — ${pct}%.\n`;
+    if (pct === 100) msg += '🎉 Отличный день! Ты молодец!';
+    else if (pct >= 70) msg += '👏 Хороший результат, продолжай в том же духе!';
+    else if (pct >= 40) msg += '💪 Неплохо, завтра доделаем остальное!';
+    else msg += '😊 Ничего страшного, завтра новый день!';
+    document.getElementById('briefingMsg').textContent = msg;
+
+    document.getElementById('eveningSection').style.display = 'block';
+    const allTasks = [
+      ...daily.map((t,i) => ({text:t, done:!!data.dailyDone[i], type:'daily'})),
+      ...once.map(t => ({text:t.text, done:t.done, type:'once'}))
+    ];
+    document.getElementById('eveningTaskList').innerHTML = allTasks.map(t =>
+      `<div class="evening-item">${t.done ? '✅' : '❌'} ${t.text}</div>`
+    ).join('') || '<div style="color:var(--text2);font-size:14px">Задач не было</div>';
+  } else {
+    // УТРЕННИЙ РЕЖИМ
+    document.getElementById('eveningSection').style.display = 'none';
+    let greeting, msg;
+    if (hour < 6) { greeting = 'Доброй ночи, Молдир! 🌙'; msg = 'Отдыхай хорошо, завтра новый день!'; }
+    else if (hour < 12) {
+      greeting = 'Доброе утро, Молдир! ☀️';
+      if (totalTasks > 0) msg = `У тебя ${totalTasks} задач на сегодня. Продуктивного дня! 💪`;
+      else msg = 'Добавь задачи на сегодня и начни день с энергией! 🚀';
+    } else {
+      greeting = 'Добрый день, Молдир! 🌤';
+      msg = doneTasks > 0 ? `Уже выполнено ${doneTasks} задач — так держать! 💪` : 'Как дела? Не забывай про задачи! 😊';
+    }
+    document.getElementById('briefingGreeting').textContent = greeting;
+    document.getElementById('briefingMsg').textContent = msg;
+  }
+
+  const tasks = [...daily.map((t,i)=>({text:t,done:!!data.dailyDone[i]})), ...once];
   document.getElementById('briefingTasksList').innerHTML = tasks.slice(0,5).map(t=>
-    `<div style="padding:6px 0;border-bottom:1px solid var(--border);font-size:14px">${t.done?'✅':'⬜'} ${t.text}</div>`
+    `<div style="padding:6px 0;border-bottom:1px solid var(--border);font-size:14px">${t.done?'✅':'⬜'} ${t.text||t}</div>`
   ).join('') || '<div style="color:var(--text2);font-size:14px">Задач нет — добавь в разделе Задачи!</div>';
 }
 
 // TASKS
 function renderTasks() {
-  const daily = data.dailyTasks || [];
-  const once = data.onceTasks || [];
-  const done = daily.filter((_,i) => data.dailyDone[i]).length + once.filter(t=>t.done).length;
+  const daily = data.dailyTasks||[];
+  const once = data.onceTasks||[];
+  const done = daily.filter((_,i)=>data.dailyDone[i]).length + once.filter(t=>t.done).length;
   const total = daily.length + once.length;
   const pct = total > 0 ? Math.round(done/total*100) : 0;
-  document.getElementById('statsPercent').textContent = pct + '%';
-  document.getElementById('statsBar').style.width = pct + '%';
-  document.getElementById('statsText').textContent = total > 0 ? `Выполнено ${done} из ${total} ${pct===100?'🎉 Молодец!'  :''}` : 'Добавь задачи';
-  document.getElementById('dailyList').innerHTML = daily.map((t,i) => `
+  document.getElementById('statsPercent').textContent = pct+'%';
+  document.getElementById('statsBar').style.width = pct+'%';
+  document.getElementById('statsText').textContent = total>0 ? `Выполнено ${done} из ${total} ${pct===100?'🎉 Молодец!':''}` : 'Добавь задачи';
+  document.getElementById('dailyList').innerHTML = daily.map((t,i)=>`
     <div class="task-item ${data.dailyDone[i]?'done':''}" onclick="toggleDaily(${i})">
       <div class="task-check">${data.dailyDone[i]?'✓':''}</div>
       <div class="task-text">${t}</div>
-      <div style="display:flex;gap:6px">
+      <div style="display:flex;gap:6px;align-items:center">
         <div class="task-badge">каждый день</div>
-        <button class="btn-danger" style="padding:2px 8px;font-size:11px" onclick="event.stopPropagation();deleteDaily(${i})">✕</button>
+        <button class="btn-danger" onclick="event.stopPropagation();deleteDaily(${i})">✕</button>
       </div>
     </div>`).join('');
-  document.getElementById('onceList').innerHTML = once.map((t,i) => `
+  document.getElementById('onceList').innerHTML = once.map((t,i)=>`
     <div class="task-item ${t.done?'done':''}" onclick="toggleOnce(${i})">
       <div class="task-check">${t.done?'✓':''}</div>
       <div class="task-text">${t.text}</div>
-      <button class="btn-danger" style="padding:2px 8px;font-size:11px" onclick="event.stopPropagation();deleteOnce(${i})">✕</button>
+      <button class="btn-danger" onclick="event.stopPropagation();deleteOnce(${i})">✕</button>
     </div>`).join('');
 }
 
@@ -554,68 +531,62 @@ async function toggleDaily(i) { data.dailyDone[i]=!data.dailyDone[i]; renderTask
 async function toggleOnce(i) { data.onceTasks[i].done=!data.onceTasks[i].done; renderTasks(); renderBriefing(); await saveData(); }
 async function deleteDaily(i) { data.dailyTasks.splice(i,1); delete data.dailyDone[i]; renderTasks(); await saveData(); }
 async function deleteOnce(i) { data.onceTasks.splice(i,1); renderTasks(); await saveData(); }
-
 async function addDailyTask() {
-  const val = document.getElementById('newDailyTask').value.trim();
-  if (!val) return;
+  const val=document.getElementById('newDailyTask').value.trim(); if(!val)return;
   data.dailyTasks.push(val); await saveData(); renderTasks(); closeModal('addDaily');
-  document.getElementById('newDailyTask').value = '';
+  document.getElementById('newDailyTask').value='';
 }
 async function addOnceTask() {
-  const val = document.getElementById('newOnceTask').value.trim();
-  if (!val) return;
+  const val=document.getElementById('newOnceTask').value.trim(); if(!val)return;
   data.onceTasks.push({text:val,done:false}); await saveData(); renderTasks(); closeModal('addOnce');
-  document.getElementById('newOnceTask').value = '';
+  document.getElementById('newOnceTask').value='';
 }
 
 // FINANCE
 function setFinType(type) {
-  data.finType = type;
-  document.getElementById('btn-expense').classList.toggle('active', type==='expense');
-  document.getElementById('btn-income').classList.toggle('active', type==='income');
+  data.finType=type;
+  document.getElementById('btn-expense').classList.toggle('active',type==='expense');
+  document.getElementById('btn-income').classList.toggle('active',type==='income');
 }
-
 async function addTransaction() {
-  const name = document.getElementById('finName').value.trim();
-  const cat = document.getElementById('finCat').value;
-  const amount = parseFloat(document.getElementById('finAmount').value);
-  if (!name||!amount) return;
+  const name=document.getElementById('finName').value.trim();
+  const cat=document.getElementById('finCat').value;
+  const amount=parseFloat(document.getElementById('finAmount').value);
+  if(!name||!amount)return;
   data.finance.push({name,cat,amount,type:data.finType||'expense',date:new Date().toLocaleDateString('ru')});
   await saveData(); renderFinance(); closeModal('addFinance');
   document.getElementById('finName').value=''; document.getElementById('finAmount').value='';
 }
-
 async function addDeposit() {
-  const amount = parseFloat(document.getElementById('depositAmount').value);
-  const note = document.getElementById('depositNote').value.trim();
-  if (!amount) return;
-  data.deposit = (data.deposit||0) + amount;
-  data.depositHistory = data.depositHistory||[];
+  const amount=parseFloat(document.getElementById('depositAmount').value);
+  const note=document.getElementById('depositNote').value.trim();
+  if(!amount)return;
+  data.deposit=(data.deposit||0)+amount;
+  data.depositHistory=data.depositHistory||[];
   data.depositHistory.push({amount,note,date:new Date().toLocaleDateString('ru')});
   await saveData(); renderFinance(); closeModal('addDeposit');
   document.getElementById('depositAmount').value=''; document.getElementById('depositNote').value='';
 }
-
 function renderFinance() {
-  const fin = data.finance||[];
-  const income = fin.filter(t=>t.type==='income').reduce((s,t)=>s+t.amount,0);
-  const expense = fin.filter(t=>t.type==='expense').reduce((s,t)=>s+t.amount,0);
-  document.getElementById('totalIncome').textContent = income.toLocaleString()+' ₸';
-  document.getElementById('totalExpense').textContent = expense.toLocaleString()+' ₸';
-  document.getElementById('totalBalance').textContent = (income-expense).toLocaleString()+' ₸';
-  document.getElementById('totalDeposit').textContent = (data.deposit||0).toLocaleString()+' ₸';
-  document.getElementById('transactionList').innerHTML = [...fin].reverse().map(t=>`
+  const fin=data.finance||[];
+  const income=fin.filter(t=>t.type==='income').reduce((s,t)=>s+t.amount,0);
+  const expense=fin.filter(t=>t.type==='expense').reduce((s,t)=>s+t.amount,0);
+  document.getElementById('totalIncome').textContent=income.toLocaleString()+' ₸';
+  document.getElementById('totalExpense').textContent=expense.toLocaleString()+' ₸';
+  document.getElementById('totalBalance').textContent=(income-expense).toLocaleString()+' ₸';
+  document.getElementById('totalDeposit').textContent=(data.deposit||0).toLocaleString()+' ₸';
+  document.getElementById('transactionList').innerHTML=[...fin].reverse().map(t=>`
     <div class="tx-item">
-      <div><div style="font-size:12px;color:var(--text2)">${t.cat} · ${t.date}</div><div>${t.name}</div></div>
+      <div><div style="font-size:12px;color:var(--text2)">${t.cat} · ${t.date}</div><div style="font-size:14px">${t.name}</div></div>
       <div class="tx-amount ${t.type==='income'?'plus':'minus'}">${t.type==='income'?'+':'-'}${t.amount.toLocaleString()} ₸</div>
     </div>`).join('')||'<p style="color:var(--text2);text-align:center;padding:20px">Пока нет транзакций</p>';
   const cats={};
   fin.filter(t=>t.type==='expense').forEach(t=>cats[t.cat]=(cats[t.cat]||0)+t.amount);
   const sorted=Object.entries(cats).sort((a,b)=>b[1]-a[1]);
-  if (sorted.length>0) {
+  if(sorted.length>0){
     const total=sorted.reduce((s,[,v])=>s+v,0);
     let text=sorted.slice(0,3).map(([cat,amt])=>`${cat}: ${amt.toLocaleString()} ₸ (${Math.round(amt/total*100)}%)`).join('\n');
-    if (sorted[0][1]/total>0.4) text+=`\n\n⚠️ На ${sorted[0][0]} уходит больше 40% — стоит пересмотреть!`;
+    if(sorted[0][1]/total>0.4) text+=`\n\n⚠️ На ${sorted[0][0]} уходит больше 40% — стоит пересмотреть!`;
     document.getElementById('analysisBox').style.display='block';
     document.getElementById('analysisText').textContent=text;
   }
@@ -624,17 +595,15 @@ function renderFinance() {
 // GOALS
 function setGoalType(type) {
   currentGoalType=type;
-  document.getElementById('btn-goal-fin').classList.toggle('active',type==='financial');
-  document.getElementById('btn-goal-other').classList.toggle('active',type==='other');
+  document.getElementById('btnGoalFin').classList.toggle('active',type==='financial');
+  document.getElementById('btnGoalOther').classList.toggle('active',type==='other');
   document.getElementById('goalFinSection').style.display=type==='financial'?'block':'none';
   document.getElementById('goalOtherSection').style.display=type==='other'?'block':'none';
 }
-
 async function addGoal() {
-  const name=document.getElementById('goalName').value.trim();
-  if (!name) return;
+  const name=document.getElementById('goalName').value.trim(); if(!name)return;
   const goal={name,type:currentGoalType,deadline:document.getElementById('goalDeadline').value,progress:[],createdAt:new Date().toLocaleDateString('ru')};
-  if (currentGoalType==='financial') {
+  if(currentGoalType==='financial'){
     goal.target=parseFloat(document.getElementById('goalTarget').value)||0;
     goal.saved=parseFloat(document.getElementById('goalSaved').value)||0;
   } else {
@@ -644,79 +613,68 @@ async function addGoal() {
   data.goals.push(goal);
   await saveData(); renderGoals(); closeModal('addGoal');
   document.getElementById('goalName').value='';
+  document.getElementById('goalTarget').value='';
+  document.getElementById('goalSaved').value='';
+  document.getElementById('goalDesc').value='';
+  document.getElementById('goalDeadline').value='';
 }
-
 function renderGoals() {
   const goals=data.goals||[];
-  if (goals.length===0) {
+  if(goals.length===0){
     document.getElementById('goalsList').innerHTML='<p style="color:var(--text2);text-align:center;padding:40px">Добавь свою первую цель! 🎯</p>';
     return;
   }
   document.getElementById('goalsList').innerHTML=goals.map((g,i)=>{
-    const now=new Date();
-    const deadline=g.deadline?new Date(g.deadline):null;
-    const isOverdue=deadline&&now>deadline&&(g.type==='other'&&!checkWeeklyProgress(g));
-    const pct=g.type==='financial'&&g.target>0?Math.min(100,Math.round(g.saved/g.target*100)):0;
-    const lastProgress=g.progress&&g.progress.length>0?g.progress[g.progress.length-1]:null;
+    const pct=g.type==='financial'&&g.target>0?Math.min(100,Math.round((g.saved||0)/g.target*100)):0;
+    const lastP=g.progress&&g.progress.length>0?g.progress[g.progress.length-1]:null;
     const weekAgo=new Date(); weekAgo.setDate(weekAgo.getDate()-7);
-    const needsUpdate=g.type==='other'&&(!lastProgress||new Date(lastProgress.date)<weekAgo);
-    return `<div class="goal-card ${isOverdue||needsUpdate?'overdue':''}">
-      <div style="display:flex;justify-content:space-between;align-items:flex-start">
+    const needsUpdate=g.type==='other'&&(!lastP||new Date(lastP.date.split('.').reverse().join('-'))<weekAgo);
+    return `<div class="goal-card ${needsUpdate?'overdue':''}">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px">
         <div>
           <div style="font-size:16px;font-weight:600">${g.name}</div>
-          <div style="font-size:12px;color:var(--text2)">${g.type==='financial'?'💰 Финансовая':'🌱 Нефинансовая'} ${g.deadline?'· до '+new Date(g.deadline).toLocaleDateString('ru'):''}</div>
+          <div style="font-size:12px;color:var(--text2)">${g.type==='financial'?'💰 Финансовая':'🌱 Нефинансовая'}${g.deadline?' · до '+new Date(g.deadline).toLocaleDateString('ru'):''}</div>
         </div>
-        ${needsUpdate?'<span class="badge-red">Обнови прогресс!</span>':''}
+        ${needsUpdate?'<span class="badge-red">Обнови!</span>':''}
       </div>
       ${g.type==='financial'?`
-        <div style="margin-top:8px">
-          <div style="display:flex;justify-content:space-between;font-size:13px">
-            <span>${(g.saved||0).toLocaleString()} ₸</span><span>${(g.target||0).toLocaleString()} ₸</span>
-          </div>
-          <div class="goal-progress-bar"><div class="goal-progress-fill" style="width:${pct}%"></div></div>
-          <div style="font-size:13px;color:var(--accent)">${pct}% накоплено</div>
+        <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:4px">
+          <span>${(g.saved||0).toLocaleString()} ₸</span><span>${(g.target||0).toLocaleString()} ₸</span>
         </div>
-        <button class="btn-sm" style="margin-top:8px" onclick="openGoalProgress(${i})">+ Добавить накопление</button>
+        <div class="goal-progress-bar"><div class="goal-progress-fill" style="width:${pct}%"></div></div>
+        <div style="font-size:13px;color:var(--accent);margin-bottom:8px">${pct}% накоплено</div>
+        <button class="btn-sm" onclick="openGoalProgress(${i})">+ Добавить накопление</button>
       `:`
-        <div style="font-size:13px;color:var(--text2);margin-top:6px">${g.desc||''}</div>
-        ${lastProgress?`<div style="font-size:12px;margin-top:6px;color:var(--text2)">Последний прогресс: ${lastProgress.date}</div>`:''}
-        <button class="btn-sm" style="margin-top:8px" onclick="openGoalProgress(${i})">📝 Записать прогресс</button>
+        <div style="font-size:13px;color:var(--text2);margin-bottom:8px">${g.desc||''}</div>
+        ${lastP?`<div style="font-size:12px;color:var(--text2);margin-bottom:8px">Последнее обновление: ${lastP.date}</div>`:''}
+        <button class="btn-sm" onclick="openGoalProgress(${i})">📝 Записать прогресс</button>
       `}
     </div>`;
   }).join('');
 }
-
-function checkWeeklyProgress(g) {
-  if (!g.progress||g.progress.length===0) return false;
-  const last=new Date(g.progress[g.progress.length-1].date);
-  const weekAgo=new Date(); weekAgo.setDate(weekAgo.getDate()-7);
-  return last>=weekAgo;
-}
-
 function openGoalProgress(i) {
   currentGoalIndex=i;
   const g=data.goals[i];
   document.getElementById('goalProgressTitle').textContent=g.name;
-  if (g.type==='financial') {
+  if(g.type==='financial'){
     document.getElementById('goalProgressContent').innerHTML=`
-      <div style="margin-bottom:8px">Текущие накопления: <b>${(g.saved||0).toLocaleString()} ₸</b></div>
+      <div style="margin-bottom:8px;font-size:14px">Текущие накопления: <b>${(g.saved||0).toLocaleString()} ₸</b></div>
       <input type="number" id="progressAmount" placeholder="Добавить сумму ₸">`;
   } else {
     document.getElementById('goalProgressContent').innerHTML=`
-      <textarea id="progressText" placeholder="Опиши свой прогресс за эту неделю..." style="height:120px"></textarea>`;
+      <textarea id="progressText" placeholder="Опиши прогресс за эту неделю..." style="height:120px"></textarea>`;
   }
   openModal('goalProgress');
 }
-
 async function saveGoalProgress() {
   const g=data.goals[currentGoalIndex];
-  if (g.type==='financial') {
+  if(g.type==='financial'){
     const amount=parseFloat(document.getElementById('progressAmount').value)||0;
     g.saved=(g.saved||0)+amount;
     g.progress.push({date:new Date().toLocaleDateString('ru'),amount});
   } else {
-    const text=document.getElementById('progressText').value.trim();
-    if (!text) return;
+    const text=document.getElementById('progressText')?document.getElementById('progressText').value.trim():'';
+    if(!text)return;
     g.progress.push({date:new Date().toLocaleDateString('ru'),text});
   }
   await saveData(); renderGoals(); closeModal('goalProgress');
@@ -724,10 +682,9 @@ async function saveGoalProgress() {
 
 // TRIPS
 async function addTrip() {
-  const name=document.getElementById('tripName').value.trim();
+  const name=document.getElementById('tripName').value.trim(); if(!name)return;
   const date=document.getElementById('tripDate').value;
   const budget=document.getElementById('tripBudget').value;
-  if (!name) return;
   data.trips=data.trips||[];
   data.trips.push({name,date,budget:budget||0,checklist:[
     {text:'Купить билеты',done:false},{text:'Забронировать отель',done:false},
@@ -736,13 +693,10 @@ async function addTrip() {
   await saveData(); renderTrips(); closeModal('addTrip');
   document.getElementById('tripName').value=''; document.getElementById('tripDate').value=''; document.getElementById('tripBudget').value='';
 }
-
 function getDaysLeft(dateStr) {
-  if (!dateStr) return null;
-  const diff=new Date(dateStr)-new Date();
-  return Math.ceil(diff/(1000*60*60*24));
+  if(!dateStr)return null;
+  return Math.ceil((new Date(dateStr)-new Date())/(1000*60*60*24));
 }
-
 function renderTrips() {
   const trips=data.trips||[];
   document.getElementById('tripList').innerHTML=trips.map((t,i)=>{
@@ -751,133 +705,97 @@ function renderTrips() {
     return `<div class="trip-card">
       <div style="display:flex;justify-content:space-between;align-items:flex-start">
         <div>
-          <div class="trip-name">✈️ ${t.name}</div>
-          <div style="font-size:12px;color:var(--text2)">${t.date?new Date(t.date).toLocaleDateString('ru'):''} · Бюджет: ${parseInt(t.budget||0).toLocaleString()} ₸</div>
+          <div style="font-size:17px;font-weight:600">✈️ ${t.name}</div>
+          <div style="font-size:12px;color:var(--text2);margin-top:2px">${t.date?new Date(t.date).toLocaleDateString('ru'):''} · ${parseInt(t.budget||0).toLocaleString()} ₸</div>
+          <div style="font-size:13px;color:var(--text2);margin-top:4px">Чеклист: ${doneCount}/${(t.checklist||[]).length}</div>
         </div>
-        ${days!==null?`<div style="text-align:center"><div class="countdown">${days>0?days:0}</div><div class="countdown-label">${days>0?'дней':'Уже едем!'}</div></div>`:''}
+        ${days!==null?`<div style="text-align:center"><div class="countdown">${days>0?days:0}</div><div style="font-size:11px;color:var(--text2)">${days>0?'дней':'Уже едем!'}</div></div>`:''}
       </div>
-      <div style="margin-top:10px;font-size:13px;color:var(--text2)">Чеклист: ${doneCount}/${(t.checklist||[]).length}</div>
-      <button class="btn-sm" style="margin-top:8px;width:100%" onclick="openTripDetail(${i})">Открыть детали →</button>
+      <button class="btn-sm" style="margin-top:10px;width:100%" onclick="openTripDetail(${i})">Открыть детали →</button>
     </div>`;
   }).join('')||'<p style="color:var(--text2);text-align:center;padding:40px">Добавь свою первую поездку! ✈️</p>';
 }
-
 function openTripDetail(i) {
   currentTripIndex=i;
+  currentTripTab='checklist';
   document.getElementById('tripDetailTitle').textContent='✈️ '+data.trips[i].name;
+  document.querySelectorAll('#modal-tripDetail .type-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('tripTabChecklist').classList.add('active');
   renderTripTab('checklist');
   openModal('tripDetail');
 }
-
-function setTripTab(tab, el) {
+function setTripTab(tab) {
+  currentTripTab=tab;
   document.querySelectorAll('#modal-tripDetail .type-btn').forEach(b=>b.classList.remove('active'));
-  el.classList.add('active');
+  document.getElementById('tripTab'+tab.charAt(0).toUpperCase()+tab.slice(1)).classList.add('active');
   renderTripTab(tab);
 }
-
 function renderTripTab(tab) {
   const t=data.trips[currentTripIndex];
   let html='';
-  if (tab==='checklist') {
+  if(tab==='checklist'){
     html=`<div>${(t.checklist||[]).map((c,j)=>`
       <div class="checklist-item ${c.done?'done':''}" onclick="toggleChecklist(${j})">
         <div class="checklist-check">${c.done?'✓':''}</div>
         <span style="flex:1">${c.text}</span>
-        <button class="btn-danger" style="padding:2px 8px;font-size:11px" onclick="event.stopPropagation();deleteChecklist(${j})">✕</button>
+        <button class="btn-danger" onclick="event.stopPropagation();deleteChecklist(${j})">✕</button>
       </div>`).join('')}
     </div>
     <div style="display:flex;gap:8px;margin-top:12px">
       <input type="text" id="newChecklistItem" placeholder="Новый пункт..." style="margin:0;flex:1">
       <button class="btn-sm" onclick="addChecklistItem()">+</button>
     </div>`;
-  } else if (tab==='places') {
+  } else if(tab==='places'){
     html=`<div>${(t.places||[]).map((p,j)=>`
       <div class="place-item">
         <span>📍 ${p}</span>
-        <button class="btn-danger" style="padding:2px 8px;font-size:11px" onclick="deletePlace(${j})">✕</button>
-      </div>`).join('')||'<p style="color:var(--text2);font-size:14px;padding:12px 0">Добавь места которые хочешь посетить</p>'}
+        <button class="btn-danger" onclick="deletePlace(${j})">✕</button>
+      </div>`).join('')||'<p style="color:var(--text2);font-size:14px;padding:12px 0">Добавь места для посещения</p>'}
     </div>
     <div style="display:flex;gap:8px;margin-top:8px">
       <input type="text" id="newPlace" placeholder="Название места..." style="margin:0;flex:1">
       <button class="btn-sm" onclick="addPlace()">+</button>
     </div>`;
-  } else if (tab==='tickets') {
+  } else if(tab==='tickets'){
     html=`<div>${(t.tickets||[]).map((tk,j)=>`
       <div class="place-item">
         <div><div style="font-size:14px">🎫 ${tk.name}</div><div style="font-size:12px;color:var(--text2)">${tk.info}</div></div>
-        <button class="btn-danger" style="padding:2px 8px;font-size:11px" onclick="deleteTicket(${j})">✕</button>
+        <button class="btn-danger" onclick="deleteTicket(${j})">✕</button>
       </div>`).join('')||'<p style="color:var(--text2);font-size:14px;padding:12px 0">Добавь информацию о билетах</p>'}
     </div>
     <div style="margin-top:8px">
-      <input type="text" id="ticketName" placeholder="Тип билета (Авиа, Отель...)" style="margin-bottom:8px">
+      <input type="text" id="ticketName" placeholder="Тип (Авиа, Отель...)">
       <input type="text" id="ticketInfo" placeholder="Детали (номер, дата, сумма...)">
       <button class="btn-sm" onclick="addTicket()" style="width:100%">+ Добавить</button>
     </div>`;
   }
   document.getElementById('tripTabContent').innerHTML=html;
 }
-
-async function toggleChecklist(j) {
-  data.trips[currentTripIndex].checklist[j].done=!data.trips[currentTripIndex].checklist[j].done;
-  await saveData(); renderTripTab('checklist'); renderTrips();
-}
-async function deleteChecklist(j) {
-  data.trips[currentTripIndex].checklist.splice(j,1);
-  await saveData(); renderTripTab('checklist');
-}
-async function addChecklistItem() {
-  const val=document.getElementById('newChecklistItem').value.trim();
-  if (!val) return;
-  data.trips[currentTripIndex].checklist.push({text:val,done:false});
-  await saveData(); renderTripTab('checklist');
-  document.getElementById('newChecklistItem').value='';
-}
-async function addPlace() {
-  const val=document.getElementById('newPlace').value.trim();
-  if (!val) return;
-  data.trips[currentTripIndex].places=data.trips[currentTripIndex].places||[];
-  data.trips[currentTripIndex].places.push(val);
-  await saveData(); renderTripTab('places');
-  document.getElementById('newPlace').value='';
-}
-async function deletePlace(j) {
-  data.trips[currentTripIndex].places.splice(j,1);
-  await saveData(); renderTripTab('places');
-}
-async function addTicket() {
-  const name=document.getElementById('ticketName').value.trim();
-  const info=document.getElementById('ticketInfo').value.trim();
-  if (!name) return;
-  data.trips[currentTripIndex].tickets=data.trips[currentTripIndex].tickets||[];
-  data.trips[currentTripIndex].tickets.push({name,info});
-  await saveData(); renderTripTab('tickets');
-  document.getElementById('ticketName').value=''; document.getElementById('ticketInfo').value='';
-}
-async function deleteTicket(j) {
-  data.trips[currentTripIndex].tickets.splice(j,1);
-  await saveData(); renderTripTab('tickets');
-}
+async function toggleChecklist(j){data.trips[currentTripIndex].checklist[j].done=!data.trips[currentTripIndex].checklist[j].done;await saveData();renderTripTab('checklist');renderTrips();}
+async function deleteChecklist(j){data.trips[currentTripIndex].checklist.splice(j,1);await saveData();renderTripTab('checklist');}
+async function addChecklistItem(){const val=document.getElementById('newChecklistItem').value.trim();if(!val)return;data.trips[currentTripIndex].checklist.push({text:val,done:false});await saveData();renderTripTab('checklist');document.getElementById('newChecklistItem').value='';}
+async function addPlace(){const val=document.getElementById('newPlace').value.trim();if(!val)return;data.trips[currentTripIndex].places=data.trips[currentTripIndex].places||[];data.trips[currentTripIndex].places.push(val);await saveData();renderTripTab('places');document.getElementById('newPlace').value='';}
+async function deletePlace(j){data.trips[currentTripIndex].places.splice(j,1);await saveData();renderTripTab('places');}
+async function addTicket(){const name=document.getElementById('ticketName').value.trim();const info=document.getElementById('ticketInfo').value.trim();if(!name)return;data.trips[currentTripIndex].tickets=data.trips[currentTripIndex].tickets||[];data.trips[currentTripIndex].tickets.push({name,info});await saveData();renderTripTab('tickets');document.getElementById('ticketName').value='';document.getElementById('ticketInfo').value='';}
+async function deleteTicket(j){data.trips[currentTripIndex].tickets.splice(j,1);await saveData();renderTripTab('tickets');}
 
 // DIARY
-function setDiaryTab(tab, el) {
-  currentDiaryTab=tab;
-  document.querySelectorAll('#page-diary .type-btn').forEach(b=>b.classList.remove('active'));
-  el.classList.add('active');
-  document.getElementById('diarySection').style.display=tab==='diary'?'block':'none';
-  document.getElementById('gratitudeSection').style.display=tab==='gratitude'?'block':'none';
+function setDiaryTab(tab) {
+  document.getElementById('diaryBtn').classList.toggle('active', tab==='diary');
+  document.getElementById('gratBtn').classList.toggle('active', tab==='gratitude');
+  document.getElementById('diarySection').style.display = tab==='diary'?'block':'none';
+  document.getElementById('gratitudeSection').style.display = tab==='gratitude'?'block':'none';
 }
-
-async function saveDiaryEntry() {
+async function saveDiaryEntry(){
   const text=document.getElementById('entryText').value.trim();
   const topic=document.getElementById('entryTopic').value;
-  if (!text) return;
+  if(!text)return;
   data.diary=data.diary||[];
   data.diary.push({text,topic,date:new Date().toLocaleDateString('ru')});
-  await saveData(); renderDiary();
+  await saveData();renderDiary();
   document.getElementById('entryText').value='';
 }
-
-function renderDiary() {
+function renderDiary(){
   document.getElementById('diaryEntries').innerHTML=[...(data.diary||[])].reverse().map(e=>`
     <div class="diary-entry">
       <div class="diary-topic">${e.topic}</div>
@@ -887,29 +805,29 @@ function renderDiary() {
 }
 
 // GRATITUDE
-function getGratStreak() {
+function getGratStreak(){
   const grat=data.gratitude||[];
-  if (grat.length===0) return 0;
+  if(grat.length===0)return 0;
   let streak=0;
-  const today=new Date(); today.setHours(0,0,0,0);
-  for (let i=grat.length-1;i>=0;i--) {
-    const d=new Date(grat[i].dateRaw||grat[i].date);
+  const today=new Date();today.setHours(0,0,0,0);
+  for(let i=grat.length-1;i>=0;i--){
+    const d=new Date(grat[i].dateRaw||Date.now());
     d.setHours(0,0,0,0);
     const diff=Math.round((today-d)/(1000*60*60*24));
-    if (diff===streak) streak++;
+    if(diff===streak)streak++;
     else break;
   }
   return streak;
 }
-
-function renderGratitude() {
+function renderGratitude(){
   const streak=getGratStreak();
   document.getElementById('gratStreak').textContent=streak;
   const today=new Date().toLocaleDateString('ru');
   const todayEntry=(data.gratitude||[]).find(g=>g.date===today);
-  if (todayEntry) {
-    document.getElementById('gratTodaySection').innerHTML=`<div class="badge-green" style="margin-bottom:8px">✅ Сегодня уже записала!</div>
-      <div class="diary-entry">${todayEntry.items.map((g,i)=>`<div>${i+1}. ${g}</div>`).join('')}</div>`;
+  if(todayEntry){
+    document.getElementById('gratTodaySection').innerHTML=`
+      <div class="badge-green" style="margin-bottom:12px">✅ Сегодня уже записала!</div>
+      <div class="diary-entry">${todayEntry.items.map((g,i)=>`<div style="padding:2px 0">${i+1}. ${g}</div>`).join('')}</div>`;
   }
   document.getElementById('gratitudeHistory').innerHTML=[...(data.gratitude||[])].reverse().slice(0,10).map(g=>`
     <div class="diary-entry">
@@ -917,33 +835,26 @@ function renderGratitude() {
       ${g.items.map((item,i)=>`<div style="font-size:14px;margin-top:4px">${i+1}. ${item}</div>`).join('')}
     </div>`).join('');
 }
-
-async function saveGratitude() {
-  const g1=document.getElementById('grat1').value.trim();
-  const g2=document.getElementById('grat2').value.trim();
-  const g3=document.getElementById('grat3').value.trim();
-  if (!g1||!g2||!g3) { alert('Напиши минимум 3 благодарности!'); return; }
-  const items=[g1,g2,g3].filter(Boolean);
+async function saveGratitude(){
+  const g1=document.getElementById('grat1')?document.getElementById('grat1').value.trim():'';
+  const g2=document.getElementById('grat2')?document.getElementById('grat2').value.trim():'';
+  const g3=document.getElementById('grat3')?document.getElementById('grat3').value.trim():'';
+  if(!g1||!g2||!g3){alert('Напиши минимум 3 благодарности!');return;}
   data.gratitude=data.gratitude||[];
   const today=new Date().toLocaleDateString('ru');
   const idx=data.gratitude.findIndex(g=>g.date===today);
-  if (idx>=0) data.gratitude[idx]={date:today,dateRaw:new Date().toISOString(),items};
-  else data.gratitude.push({date:today,dateRaw:new Date().toISOString(),items});
-  await saveData(); renderGratitude();
-  document.getElementById('grat1').value=''; document.getElementById('grat2').value=''; document.getElementById('grat3').value='';
+  const entry={date:today,dateRaw:new Date().toISOString(),items:[g1,g2,g3].filter(Boolean)};
+  if(idx>=0)data.gratitude[idx]=entry;
+  else data.gratitude.push(entry);
+  await saveData();renderGratitude();
+  if(document.getElementById('grat1'))document.getElementById('grat1').value='';
+  if(document.getElementById('grat2'))document.getElementById('grat2').value='';
+  if(document.getElementById('grat3'))document.getElementById('grat3').value='';
 }
 
 // QUOTES
-function renderQuotes() {
-  const today=new Date();
-  const todayQuote=quotes[today.getDate()%quotes.length];
-  document.getElementById('quoteOfDay').innerHTML=`
-    <div class="card-gradient" style="text-align:center">
-      <div style="font-size:12px;opacity:0.8;margin-bottom:8px">💫 Цитата дня</div>
-      <div style="font-size:16px;line-height:1.6;font-style:italic">"${todayQuote.text}"</div>
-      <div style="font-size:13px;opacity:0.8;margin-top:8px">${todayQuote.author}</div>
-    </div>`;
-  document.getElementById('allQuotes').innerHTML=quotes.map(q=>`
+function renderQuotes(){
+  document.getElementById('allQuotes').innerHTML=quotes.map((q,i)=>`
     <div class="quote-card">
       <div class="quote-text">"${q.text}"</div>
       <div class="quote-author">${q.author}</div>
