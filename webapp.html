@@ -689,8 +689,17 @@ async function loadWorkTasks() {
   }
 }
 
-init();
-loadWorkTasks();
+// INIT
+applyTheme(D.theme||'dark');
+if (tg && tg.initDataUnsafe && tg.initDataUnsafe.user) {
+  userId = String(tg.initDataUnsafe.user.id);
+  document.getElementById('uname').textContent = tg.initDataUnsafe.user.first_name + ' 🌸';
+}
+loadCloud(function() {
+  applyTheme(D.theme||'dark');
+  renderMain();renderTasks();renderFin();renderGoals();renderTrips();renderDiary();renderGrat();renderQuotes();
+  loadWorkTasks();
+});
 </script>
 </body>
 </html>
