@@ -1,11 +1,15 @@
 const TelegramBot = require('node-telegram-bot-api');
 const Anthropic = require('@anthropic-ai/sdk');
+const { createClient } = require('@supabase/supabase-js');
 
 const TELEGRAM_TOKEN = process.env.TELEGRAM_TOKEN;
 const ANTHROPIC_API_KEY = process.env.ANTHROPIC_API_KEY;
+const SUPABASE_URL = process.env.SUPABASE_URL;
+const SUPABASE_KEY = process.env.SUPABASE_KEY;
 
 const bot = new TelegramBot(TELEGRAM_TOKEN, { polling: true });
 const anthropic = new Anthropic({ apiKey: ANTHROPIC_API_KEY });
+const sb = createClient(SUPABASE_URL, SUPABASE_KEY);
 
 const userHistories = {};
 
@@ -49,10 +53,17 @@ bot.onText(/\/task (.+)/, async function(msg, match) {
   }
 
   try {
-    await bot.sendMessage(toId, 'Новая задача: ' + taskText, {
+    await sb.from('delegated_tasks').insert({
+      from_id: fromId,
+      to_id: toId,
+      task_text: taskText,
+      status: 'pending'
+    });
+
+    await bot.sendMessage(toId, 'Новая задача от руководителя: ' + taskText, {
       reply_markup: {
         inline_keyboard: [[
-          { text: 'Выполнено!', callback_data: 'done_' + fromId }
+          { text: 'Выполнено!', callback_data: 'done_' + fromId + '_' + toId + '_' + taskText.substring(0, 20) }
         ]]
       }
     });
@@ -64,8 +75,16 @@ bot.onText(/\/task (.+)/, async function(msg, match) {
 
 bot.on('callback_query', async function(query) {
   if (query.data.startsWith('done_')) {
-    const bossId = query.data.split('_')[1];
+    const parts = query.data.split('_');
+    const bossId = parts[1];
+    const toId = parts[2];
     const workerName = query.from.first_name;
+
+    await sb.from('delegated_tasks')
+      .update({ status: 'done', completed_at: new Date().toISOString() })
+      .eq('to_id', toId)
+      .eq('status', 'pending');
+
     bot.answerCallbackQuery(query.id, { text: 'Отмечено!' });
     bot.sendMessage(bossId, workerName + ' выполнил(а) задачу!');
   }
