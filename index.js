@@ -115,7 +115,7 @@ bot.on('message', async (msg) => {
   try {
     bot.sendChatAction(chatId, 'typing');
     const response = await anthropic.messages.create({
-      model: 'claude-haiku-4-5-20251001',
+      model: 'claude-opus-4-6',
       max_tokens: 1024,
       system: 'Ты личный ассистент по имени Боно. Ты умный, дружелюбный и поддерживающий. Отвечаешь на русском языке. Помогаешь с любыми вопросами — как психолог, советник, помощник. Всегда отвечай тепло и по-человечески.',
       messages: userHistories[chatId],
