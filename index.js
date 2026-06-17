@@ -19,10 +19,19 @@ const mainMenu = {
   }
 };
 
+const users = {};
+
 bot.onText(/\/start/, (msg) => {
   const chatId = msg.chat.id;
+  const name = msg.from.first_name || 'Пользователь';
+  users[chatId] = { name, chatId };
   userHistories[chatId] = [];
-  bot.sendMessage(chatId, 'Привет! Я Боно 🤖 Твой личный ассистент.\n\nВсе твои задачи, финансы, дневник и поездки — в приложении 👇', mainMenu);
+  bot.sendMessage(chatId, `Привет, ${name}! Я Боно 🤖 Твой личный ассистент.\n\nЯ помогу тебе следить за задачами и всегда готов выслушать 💙`, mainMenu);
+});
+
+bot.onText(/\/users/, (msg) => {
+  const list = Object.values(users).map(u => `${u.name}: ${u.chatId}`).join('\n');
+  bot.sendMessage(msg.chat.id, list || 'Пока никого нет');
 });
 
 bot.on('message', async (msg) => {
