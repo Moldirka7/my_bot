@@ -1,8 +1,8 @@
 const TelegramBot = require('node-telegram-bot-api');
 const Anthropic = require('@anthropic-ai/sdk');
 
-const TELEGRAM_TOKEN = '8897220742:AAG1hsG1oZ1dIoXkvz2r3opoYAE67X9Rwq8';
-const ANTHROPIC_API_KEY = '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';
+const TELEGRAM_TOKEN = process.env.TELEGRAM_TOKEN;
+const ANTHROPIC_API_KEY = process.env.ANTHROPIC_API_KEY;
 
 const bot = new TelegramBot(TELEGRAM_TOKEN, { polling: true });
 const anthropic = new Anthropic({ apiKey: ANTHROPIC_API_KEY });
