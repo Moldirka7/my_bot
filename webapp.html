@@ -348,13 +348,25 @@ const QQ = [
 
 function save() {
   localStorage.setItem('bonoD', JSON.stringify(D));
-  if (sb && userId !== 'local') {
-    sb.from('user_data').select('id').eq('user_id', userId).single().then(function(r) {
-      if (r.data) sb.from('user_data').update({data: JSON.stringify(D)}).eq('user_id', userId);
-      else sb.from('user_data').insert({user_id: userId, data: JSON.stringify(D)});
-    }).catch(function() {
-      sb.from('user_data').insert({user_id: userId, data: JSON.stringify(D)});
+  if (tg && tg.CloudStorage) {
+    tg.CloudStorage.setItem('bonoD', JSON.stringify(D), function(){});
+  }
+}
+
+function loadCloud(cb) {
+  if (tg && tg.CloudStorage) {
+    tg.CloudStorage.getItem('bonoD', function(err, val) {
+      if (!err && val) {
+        try {
+          var remote = JSON.parse(val);
+          D = Object.assign(D, remote);
+          localStorage.setItem('bonoD', JSON.stringify(D));
+        } catch(e) {}
+      }
+      if (cb) cb();
     });
+  } else {
+    if (cb) cb();
   }
 }
 
@@ -646,18 +658,11 @@ applyTheme(D.theme||'dark');
 if (tg && tg.initDataUnsafe && tg.initDataUnsafe.user) {
   userId = String(tg.initDataUnsafe.user.id);
   document.getElementById('uname').textContent = tg.initDataUnsafe.user.first_name + ' 🌸';
-  if (sb) {
-    sb.from('user_data').select('*').eq('user_id', userId).single().then(function(r) {
-      if (r.data && r.data.data) {
-        var remote = JSON.parse(r.data.data);
-        D = Object.assign(D, remote);
-        localStorage.setItem('bonoD', JSON.stringify(D));
-        applyTheme(D.theme||'dark');
-        renderMain();renderTasks();renderFin();renderGoals();renderTrips();renderDiary();renderGrat();renderQuotes();
-      }
-    }).catch(function(){});
-  }
 }
+loadCloud(function() {
+  applyTheme(D.theme||'dark');
+  renderMain();renderTasks();renderFin();renderGoals();renderTrips();renderDiary();renderGrat();renderQuotes();
+});
 renderMain();renderTasks();renderFin();renderGoals();renderTrips();renderDiary();renderGrat();renderQuotes();
 </script>
 </body>
