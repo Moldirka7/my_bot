@@ -105,6 +105,7 @@ input:focus{outline:none;border-color:var(--accent);}
   <div class="tab" onclick="showPage('trips',this)"><span>✈️</span>Поездки</div>
   <div class="tab" onclick="showPage('diary',this)"><span>📔</span>Дневник</div>
   <div class="tab" onclick="showPage('quotes',this)"><span>💫</span>Цитаты</div>
+  <div class="tab" onclick="showPage('work',this)"><span>👥</span>Работа</div>
 </div>
 
 <!-- ГЛАВНАЯ -->
@@ -201,6 +202,12 @@ input:focus{outline:none;border-color:var(--accent);}
 <!-- ЦИТАТЫ -->
 <div class="page" id="page-quotes">
   <div id="allQ"></div>
+</div>
+
+<!-- РАБОТА -->
+<div class="page" id="page-work">
+  <div class="sec">📋 Задачи от руководителя</div>
+  <div id="workTasks"><div style="color:var(--text2);text-align:center;padding:20px">Загрузка...</div></div>
 </div>
 
 <!-- MODALS -->
@@ -653,17 +660,37 @@ function saveGrat(){
 // QUOTES
 function renderQuotes(){document.getElementById('allQ').innerHTML=QQ.map(function(q){return '<div class="qc"><div class="qt">"'+q.t+'"</div><div class="qa">'+q.a+'</div></div>';}).join('');}
 
-// INIT
-applyTheme(D.theme||'dark');
-if (tg && tg.initDataUnsafe && tg.initDataUnsafe.user) {
-  userId = String(tg.initDataUnsafe.user.id);
-  document.getElementById('uname').textContent = tg.initDataUnsafe.user.first_name + ' 🌸';
+async function loadWorkTasks() {
+  if (!userId || userId === 'local') {
+    document.getElementById('workTasks').innerHTML = '<div style="color:var(--text2);text-align:center;padding:20px">Открой через Telegram бота</div>';
+    return;
+  }
+  try {
+    const res = await fetch('https://rbaepivpvkejdjyrxuzo.supabase.co/rest/v1/delegated_tasks?to_id=eq.' + userId + '&order=created_at.desc', {
+      headers: {
+        'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJiYWVwaXZwdmtlamRqeXJ4dXpvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE2MjMzNDMsImV4cCI6MjA5NzE5OTM0M30.MQLxXgKsUTcA3CPzwav7tXfr5LhtZFSLCaUaMF5hRzo',
+        'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJiYWVwaXZwdmtlamRqeXJ4dXpvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE2MjMzNDMsImV4cCI6MjA5NzE5OTM0M30.MQLxXgKsUTcA3CPzwav7tXfr5LhtZFSLCaUaMF5hRzo'
+      }
+    });
+    const tasks = await res.json();
+    if (!tasks.length) {
+      document.getElementById('workTasks').innerHTML = '<div style="color:var(--text2);text-align:center;padding:20px">Нет задач</div>';
+      return;
+    }
+    document.getElementById('workTasks').innerHTML = tasks.map(function(t) {
+      return '<div class="task ' + (t.status === 'done' ? 'done' : '') + '">'
+        + '<div class="chk">' + (t.status === 'done' ? '✓' : '') + '</div>'
+        + '<div class="ttext">' + t.task_text + '</div>'
+        + '<div class="badge">' + (t.status === 'done' ? '✅ Выполнено' : '⏳ В процессе') + '</div>'
+        + '</div>';
+    }).join('');
+  } catch(e) {
+    document.getElementById('workTasks').innerHTML = '<div style="color:var(--text2)">Ошибка загрузки</div>';
+  }
 }
-loadCloud(function() {
-  applyTheme(D.theme||'dark');
-  renderMain();renderTasks();renderFin();renderGoals();renderTrips();renderDiary();renderGrat();renderQuotes();
-});
-renderMain();renderTasks();renderFin();renderGoals();renderTrips();renderDiary();renderGrat();renderQuotes();
+
+init();
+loadWorkTasks();
 </script>
 </body>
 </html>
