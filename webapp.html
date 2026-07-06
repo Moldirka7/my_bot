@@ -347,12 +347,6 @@ const QQ = [
   {t:"Жизнь начинается там, где заканчивается зона комфорта.",a:"— Нил Дональд Уолш"},
 ];
 
-function save() {
-  localStorage.setItem('bonoD', JSON.stringify(D));
-  if (tg && tg.CloudStorage) {
-    tg.CloudStorage.setItem('bonoD', JSON.stringify(D), function(){});
-  }
-}
 
 function loadCloud(cb) {
   if (tg && tg.initDataUnsafe && tg.initDataUnsafe.user && sb) {
@@ -693,34 +687,6 @@ function saveGrat(){
 // QUOTES
 function renderQuotes(){document.getElementById('allQ').innerHTML=QQ.map(function(q){return '<div class="qc"><div class="qt">"'+q.t+'"</div><div class="qa">'+q.a+'</div></div>';}).join('');}
 
-async function loadWorkTasks() {
-  if (!userId || userId === 'local') {
-    document.getElementById('workTasks').innerHTML = '<div style="color:var(--text2);text-align:center;padding:20px">Открой через Telegram бота</div>';
-    return;
-  }
-  try {
-    const res = await fetch('https://rbaepivpvkejdjyrxuzo.supabase.co/rest/v1/delegated_tasks?to_id=eq.' + userId + '&order=created_at.desc', {
-      headers: {
-        'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJiYWVwaXZwdmtlamRqeXJ4dXpvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE2MjMzNDMsImV4cCI6MjA5NzE5OTM0M30.MQLxXgKsUTcA3CPzwav7tXfr5LhtZFSLCaUaMF5hRzo',
-        'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJiYWVwaXZwdmtlamRqeXJ4dXpvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE2MjMzNDMsImV4cCI6MjA5NzE5OTM0M30.MQLxXgKsUTcA3CPzwav7tXfr5LhtZFSLCaUaMF5hRzo'
-      }
-    });
-    const tasks = await res.json();
-    if (!tasks.length) {
-      document.getElementById('workTasks').innerHTML = '<div style="color:var(--text2);text-align:center;padding:20px">Нет задач</div>';
-      return;
-    }
-    document.getElementById('workTasks').innerHTML = tasks.map(function(t) {
-      return '<div class="task ' + (t.status === 'done' ? 'done' : '') + '">'
-        + '<div class="chk">' + (t.status === 'done' ? '✓' : '') + '</div>'
-        + '<div class="ttext">' + t.task_text + '</div>'
-        + '<div class="badge">' + (t.status === 'done' ? '✅ Выполнено' : '⏳ В процессе') + '</div>'
-        + '</div>';
-    }).join('');
-  } catch(e) {
-    document.getElementById('workTasks').innerHTML = '<div style="color:var(--text2)">Ошибка загрузки</div>';
-  }
-}
 
 // INIT
 applyTheme(D.theme||'dark');
@@ -731,7 +697,6 @@ if (tg && tg.initDataUnsafe && tg.initDataUnsafe.user) {
 loadCloud(function() {
   applyTheme(D.theme||'dark');
   renderMain();renderTasks();renderFin();renderGoals();renderTrips();renderDiary();renderGrat();renderQuotes();
-  loadWorkTasks();
 });
 </script>
 </body>
