@@ -550,7 +550,7 @@ function renderFin(){
    return '<div class="tx"><div><div style="font-size:12px;color:var(--text2)">'+t.cat+' · '+t.date+'</div><div style="font-size:14px">'+t.name+'</div></div>'
       +'<div style="display:flex;align-items:center;gap:8px">'
       +'<div class="txa '+(t.type==='inc'?'p':'m')+'">'+(t.type==='inc'?'+':'-')+t.amount.toLocaleString()+' ₸</div>'
-      +'<button class="btn-d" onclick="delFin('+([...f].length-1-fi)+')">✕</button>'
+      +'<button class="btn-d" onclick="delFin('+i+')">✕</button>'
       +'</div></div>';
   }).join('')||'<p style="color:var(--text2);text-align:center;padding:20px">Пока нет транзакций</p>';
   var cats={};
