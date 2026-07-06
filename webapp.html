@@ -466,6 +466,14 @@ function renderMain() {
 }
 
 // TASKS
+function toggleDone(){
+  var el = document.getElementById('doneList');
+  if (el) {
+    el.style.display = el.style.display === 'none' ? 'block' : 'none';
+    el.previousElementSibling.textContent = (el.style.display === 'none' ? '▶' : '▼') + ' Выполнено (' + el.children.length + ')';
+  }
+}
+
 function renderTasks() {
   var dl = D.daily||[], on = D.once||[];
   var dn = dl.filter(function(_,i){return D.dd[i];}).length + on.filter(function(t){return t.done;}).length;
@@ -483,13 +491,24 @@ function renderTasks() {
       +'<button class="btn-d" onclick="event.stopPropagation();delDaily('+i+')">✕</button>'
       +'</div></div>';
   }).join('');
-  document.getElementById('onceList').innerHTML = on.map(function(t,i){
-    return '<div class="task '+(t.done?'done':'')+'" onclick="togOnce('+i+')">'
-      +'<div class="chk">'+(t.done?'✓':'')+'</div>'
-      +'<div class="ttext">'+t.text+'</div>'
-      +'<button class="btn-d" onclick="event.stopPropagation();delOnce('+i+')">✕</button>'
-      +'</div>';
-  }).join('');
+  var active = on.filter(function(t){return !t.done;});
+  var done = on.filter(function(t){return t.done;});
+  document.getElementById('onceList').innerHTML =
+    active.map(function(t){
+      var i = on.indexOf(t);
+      return '<div class="task" onclick="togOnce('+i+')">'
+        +'<div class="chk"></div><div class="ttext">'+t.text+'</div>'
+        +'<button class="btn-d" onclick="event.stopPropagation();delOnce('+i+')">✕</button></div>';
+    }).join('')
+    + (done.length > 0 ?
+      '<div onclick="toggleDone()" style="cursor:pointer;padding:10px 0;font-size:13px;color:var(--text2)">▶ Выполнено ('+done.length+')</div>'
+      +'<div id="doneList" style="display:none">'
+      + done.map(function(t){
+        var i = on.indexOf(t);
+        return '<div class="task done" onclick="togOnce('+i+')">'
+          +'<div class="chk">✓</div><div class="ttext">'+t.text+'</div>'
+          +'<button class="btn-d" onclick="event.stopPropagation();delOnce('+i+')">✕</button></div>';
+      }).join('')+'</div>' : '');
 }
 function togDaily(i){D.dd[i]=!D.dd[i];save();renderTasks();renderMain();}
 function togOnce(i){D.once[i].done=!D.once[i].done;save();renderTasks();renderMain();}
