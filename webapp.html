@@ -355,7 +355,18 @@ function save() {
 }
 
 function loadCloud(cb) {
-  if (tg && tg.CloudStorage) {
+  if (sb && userId && userId !== 'local') {
+    sb.from('user_data').select('*').eq('user_id', userId).single().then(function(r) {
+      if (r.data && r.data.data) {
+        try {
+          var remote = JSON.parse(r.data.data);
+          D = Object.assign(D, remote);
+          localStorage.setItem('bonoD', JSON.stringify(D));
+        } catch(e) {}
+      }
+      if (cb) cb();
+    }).catch(function() { if (cb) cb(); });
+  } else if (tg && tg.CloudStorage) {
     tg.CloudStorage.getItem('bonoD', function(err, val) {
       if (!err && val) {
         try {
@@ -388,9 +399,22 @@ function showPage(p, el) {
   el.classList.add('active');
 }
 
-function openM(name) {
-  var el = document.getElementById('m-' + name);
-  if (el) el.classList.add('open');
+function save() {
+  localStorage.setItem('bonoD', JSON.stringify(D));
+  if (tg && tg.CloudStorage) {
+    tg.CloudStorage.setItem('bonoD', JSON.stringify(D), function(){});
+  }
+  if (sb && userId && userId !== 'local') {
+    sb.from('user_data').select('id').eq('user_id', userId).single().then(function(r) {
+      if (r.data) {
+        sb.from('user_data').update({data: JSON.stringify(D)}).eq('user_id', userId);
+      } else {
+        sb.from('user_data').insert({user_id: userId, data: JSON.stringify(D)});
+      }
+    }).catch(function() {
+      sb.from('user_data').insert({user_id: userId, data: JSON.stringify(D)});
+    });
+  }
 }
 
 function closeM(name) {
