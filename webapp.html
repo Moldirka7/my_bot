@@ -555,21 +555,32 @@ function renderGoals(){
     var lp=g.progress&&g.progress.length>0?g.progress[g.progress.length-1]:null;
     var wa=new Date();wa.setDate(wa.getDate()-7);
     var need=g.type==='oth'&&(!lp||new Date(lp.dateRaw||0)<wa);
+    var history=g.progress&&g.progress.length>0?g.progress.map(function(p){
+      return '<div style="font-size:12px;color:var(--text2);padding:4px 0;border-bottom:1px solid var(--border)">'
+        +(g.type==='fin'?'+ '+(p.amount||0).toLocaleString()+' ₸':p.text||'')
+        +' <span style="opacity:0.6">— '+p.date+'</span></div>';
+    }).join(''):'';
     return '<div class="gc '+(need?'ov':'')+'">'
       +'<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px">'
       +'<div><div style="font-size:16px;font-weight:600">'+g.name+'</div>'
       +'<div style="font-size:12px;color:var(--text2)">'+(g.type==='fin'?'💰 Финансовая':'🌱 Нефинансовая')+(g.deadline?' · до '+new Date(g.deadline).toLocaleDateString('ru'):'')+'</div></div>'
-      +(need?'<span class="brd">Обнови!</span>':'')+'</div>'
+      +'<div style="display:flex;gap:6px;align-items:center">'
+      +(need?'<span class="brd">Обнови!</span>':'')
+      +'<button class="btn-d" onclick="delGoal('+i+')">✕</button>'
+      +'</div></div>'
       +(g.type==='fin'?'<div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:4px"><span>'+(g.saved||0).toLocaleString()+' ₸</span><span>'+(g.target||0).toLocaleString()+' ₸</span></div>'
       +'<div class="gpb"><div class="gpf" style="width:'+pct+'%"></div></div>'
       +'<div style="font-size:13px;color:var(--accent);margin-bottom:8px">'+pct+'% накоплено</div>'
+      +(history?'<div style="margin-bottom:8px">'+history+'</div>':'')
       +'<button class="btn-s" onclick="openGP('+i+')">+ Добавить накопление</button>'
       :'<div style="font-size:13px;color:var(--text2);margin-bottom:8px">'+(g.desc||'')+'</div>'
+      +(history?'<div style="margin-bottom:8px">'+history+'</div>':'')
       +(lp?'<div style="font-size:12px;color:var(--text2);margin-bottom:8px">Обновлено: '+lp.date+'</div>':'')
       +'<button class="btn-s" onclick="openGP('+i+')">📝 Записать прогресс</button>')
       +'</div>';
   }).join('');
 }
+
 function openGP(i){
   curGoal=i;var g=D.goals[i];
   document.getElementById('gpTitle').textContent=g.name;
@@ -580,6 +591,8 @@ function openGP(i){
   }
   openM('goalProg');
 }
+function delGoal(i){if(confirm('Удалить цель?')){D.goals.splice(i,1);save();renderGoals();}}
+
 function saveGP(){
   var g=D.goals[curGoal];
   if(g.type==='fin'){var a=parseFloat(document.getElementById('gpAmt').value)||0;g.saved=(g.saved||0)+a;g.progress.push({date:new Date().toLocaleDateString('ru'),dateRaw:new Date().toISOString(),amount:a});}
