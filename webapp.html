@@ -413,6 +413,11 @@ function save() {
   }
 }
 
+function openM(name) {
+  var el = document.getElementById('m-' + name);
+  if (el) el.classList.add('open');
+}
+
 function closeM(name) {
   var el = document.getElementById('m-' + name);
   if (el) el.classList.remove('open');
