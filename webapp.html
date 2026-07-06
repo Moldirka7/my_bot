@@ -672,9 +672,21 @@ function renderTT(t){
     +'</div><div style="display:flex;gap:8px;margin-top:8px"><input id="nPL" placeholder="Название места..." style="margin:0;flex:1"><button class="btn-s" onclick="addPL()">+</button></div>';
   } else {
     h='<div>'+(tr.tickets||[]).map(function(tk,j){
-      return '<div class="pi"><div><div style="font-size:14px">🎫 '+tk.n+'</div><div style="font-size:12px;color:var(--text2)">'+tk.i+'</div></div><button class="btn-d" onclick="delTK('+j+')">✕</button></div>';
-    }).join('')||'<p style="color:var(--text2);font-size:14px;padding:12px 0">Добавь информацию о билетах</p>'
-    +'</div><div style="margin-top:8px"><input id="nTKn" placeholder="Тип (Авиа, Отель...)"><input id="nTKi" placeholder="Детали (номер, дата...)"><button class="btn-s" onclick="addTK()" style="width:100%">+ Добавить</button></div>';
+      return '<div class="pi"><div>'
+        +'<div style="font-size:14px">🎫 '+tk.n+'</div>'
+        +(tk.i?'<div style="font-size:12px;color:var(--text2)">'+tk.i+'</div>':'')
+        +(tk.date?'<div style="font-size:12px;color:var(--accent)">📅 '+tk.date+(tk.from?' · из '+tk.from:'')+(tk.time?' · '+tk.time:'')+'</div>':'')
+        +'</div><button class="btn-d" onclick="delTK('+j+')">✕</button></div>';
+    }).join('')||'<p style="color:var(--text2);font-size:14px;padding:12px 0">Добавь билеты</p>'
+    +'</div>'
+    +'<div style="margin-top:8px">'
+    +'<input id="nTKn" placeholder="Тип (Авиа, Отель, Трансфер...)">'
+    +'<input id="nTKi" placeholder="Номер билета или подтверждение">'
+    +'<input id="nTKdate" type="date" placeholder="Дата">'
+    +'<input id="nTKfrom" placeholder="Откуда (город)">'
+    +'<input id="nTKtime" placeholder="Время (14:30)">'
+    +'<button class="btn-s" onclick="addTK()" style="width:100%">+ Добавить</button>'
+    +'</div>';
   }
   document.getElementById('ttContent').innerHTML=h;
 }
@@ -683,7 +695,22 @@ function delCL(j){D.trips[curTrip].checklist.splice(j,1);save();renderTT('cl');}
 function addCL(){var v=document.getElementById('nCL').value.trim();if(!v)return;D.trips[curTrip].checklist.push({t:v,d:false});save();renderTT('cl');document.getElementById('nCL').value='';}
 function addPL(){var v=document.getElementById('nPL').value.trim();if(!v)return;D.trips[curTrip].places=D.trips[curTrip].places||[];D.trips[curTrip].places.push(v);save();renderTT('pl');document.getElementById('nPL').value='';}
 function delPL(j){D.trips[curTrip].places.splice(j,1);save();renderTT('pl');}
-function addTK(){var n=document.getElementById('nTKn').value.trim(),i=document.getElementById('nTKi').value.trim();if(!n)return;D.trips[curTrip].tickets=D.trips[curTrip].tickets||[];D.trips[curTrip].tickets.push({n:n,i:i});save();renderTT('tk');document.getElementById('nTKn').value='';document.getElementById('nTKi').value='';}
+function addTK(){
+  var n=document.getElementById('nTKn').value.trim();
+  var info=document.getElementById('nTKi').value.trim();
+  var date=document.getElementById('nTKdate').value;
+  var from=document.getElementById('nTKfrom').value.trim();
+  var time=document.getElementById('nTKtime').value.trim();
+  if(!n)return;
+  D.trips[curTrip].tickets=D.trips[curTrip].tickets||[];
+  D.trips[curTrip].tickets.push({n:n,i:info,date:date,from:from,time:time});
+  save();renderTT('tk');
+  document.getElementById('nTKn').value='';
+  document.getElementById('nTKi').value='';
+  document.getElementById('nTKdate').value='';
+  document.getElementById('nTKfrom').value='';
+  document.getElementById('nTKtime').value='';
+}
 function delTK(j){D.trips[curTrip].tickets.splice(j,1);save();renderTT('tk');}
 
 // DIARY
