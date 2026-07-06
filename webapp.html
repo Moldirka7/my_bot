@@ -697,11 +697,11 @@ function addPL(){var v=document.getElementById('nPL').value.trim();if(!v)return;
 function delPL(j){D.trips[curTrip].places.splice(j,1);save();renderTT('pl');}
 function addTK(){
   var n=document.getElementById('nTKn').value.trim();
+  if(!n)return;
   var info=document.getElementById('nTKi').value.trim();
   var date=document.getElementById('nTKdate').value;
   var from=document.getElementById('nTKfrom').value.trim();
   var time=document.getElementById('nTKtime').value.trim();
-  if(!n)return;
   D.trips[curTrip].tickets=D.trips[curTrip].tickets||[];
   D.trips[curTrip].tickets.push({n:n,i:info,date:date,from:from,time:time});
   save();renderTT('tk');
