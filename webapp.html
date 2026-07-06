@@ -696,6 +696,7 @@ function addCL(){var v=document.getElementById('nCL').value.trim();if(!v)return;
 function addPL(){var v=document.getElementById('nPL').value.trim();if(!v)return;D.trips[curTrip].places=D.trips[curTrip].places||[];D.trips[curTrip].places.push(v);save();renderTT('pl');document.getElementById('nPL').value='';}
 function delPL(j){D.trips[curTrip].places.splice(j,1);save();renderTT('pl');}
 function addTK(){
+  var n=
   var n=document.getElementById('nTKn').value.trim();
   var info=document.getElementById('nTKi').value.trim();
   var date=document.getElementById('nTKdate').value;
