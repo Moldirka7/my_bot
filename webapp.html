@@ -200,7 +200,9 @@ input:focus{outline:none;border-color:var(--accent);}
 
 <!-- ЦИТАТЫ -->
 <div class="page" id="page-quotes">
-  <div id="allQ"></div>
+  <textarea id="newQuote" placeholder="Напиши свой инсайт или цитату..."></textarea>
+  <button class="btn" onclick="addQuote()">+ Добавить</button>
+  <div id="allQ" style="margin-top:16px"></div>
 </div>
 
 
@@ -326,6 +328,7 @@ if (!D.grat) D.grat = [];
 if (!D.theme) D.theme = 'dark';
 if (!D.ftype) D.ftype = 'exp';
 if (!D.gtype) D.gtype = 'fin';
+if (!D.quotes) D.quotes = [];
 
 let curTrip = null, curGoal = null, curTT = 'cl';
 
@@ -709,8 +712,20 @@ function saveGrat(){
 }
 
 // QUOTES
-function renderQuotes(){document.getElementById('allQ').innerHTML=QQ.map(function(q){return '<div class="qc"><div class="qt">"'+q.t+'"</div><div class="qa">'+q.a+'</div></div>';}).join('');}
+function renderQuotes(){
+  document.getElementById('allQ').innerHTML = [...(D.quotes||[])].reverse().map(function(q){
+    return '<div class="qc"><div class="qt">"'+q.text+'"</div><div class="qa">'+q.date+'</div></div>';
+  }).join('') || '<p style="color:var(--text2);text-align:center;padding:40px">Добавь свой первый инсайт! 💫</p>';
+}
 
+function addQuote(){
+  var text = document.getElementById('newQuote').value.trim();
+  if (!text) return;
+  if (!D.quotes) D.quotes = [];
+  D.quotes.push({text:text, date:new Date().toLocaleDateString('ru')});
+  save(); renderQuotes();
+  document.getElementById('newQuote').value = '';
+}
 
 // INIT
 applyTheme(D.theme||'dark');
