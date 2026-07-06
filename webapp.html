@@ -638,6 +638,7 @@ function addTrip(){
   document.getElementById('tName').value='';document.getElementById('tDate').value='';document.getElementById('tBudget').value='';
 }
 function daysLeft(s){if(!s)return null;return Math.ceil((new Date(s)-new Date())/(86400000));}
+function delTrip(i){if(confirm('Удалить поездку?')){D.trips.splice(i,1);save();renderTrips();}}
 function renderTrips(){
   var tr=D.trips||[];
   document.getElementById('tripList').innerHTML=tr.map(function(t,i){
@@ -647,7 +648,10 @@ function renderTrips(){
       +'<div style="font-size:12px;color:var(--text2);margin-top:2px">'+(t.date?new Date(t.date).toLocaleDateString('ru'):'')+' · '+parseInt(t.budget||0).toLocaleString()+' ₸</div>'
       +'<div style="font-size:13px;color:var(--text2);margin-top:4px">Чеклист: '+dc+'/'+(t.checklist||[]).length+'</div></div>'
       +(dl!==null?'<div style="text-align:center"><div class="cd">'+(dl>0?dl:0)+'</div><div style="font-size:11px;color:var(--text2)">'+(dl>0?'дней':'Уже едем!')+'</div></div>':'')
-      +'</div><button class="btn-s" style="margin-top:10px;width:100%" onclick="openTD('+i+')">Открыть детали →</button></div>';
+      +'</div><div style="display:flex;gap:8px;margin-top:10px">'
++'<button class="btn-s" style="flex:1" onclick="openTD('+i+')">Открыть детали →</button>'
++'<button class="btn-d" onclick="delTrip('+i+')">✕ Удалить</button>'
++'</div></div>';
   }).join('')||'<p style="color:var(--text2);text-align:center;padding:40px">Добавь свою первую поездку! ✈️</p>';
 }
 function openTD(i){curTrip=i;curTT='cl';document.getElementById('tdTitle').textContent='✈️ '+D.trips[i].name;document.querySelectorAll('#m-tripD .tb').forEach(function(b){b.classList.remove('active');});document.getElementById('ttCL').classList.add('active');renderTT('cl');openM('tripD');}
