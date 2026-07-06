@@ -76,7 +76,7 @@ input:focus{outline:none;border-color:var(--accent);}
 .qa{font-size:13px;color:var(--text2);}
 .modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:1000;align-items:flex-end;}
 .modal.open{display:flex !important;}
-.mc{background:var(--bg2);border-radius:20px 20px 0 0;padding:24px;width:100%;max-height:85vh;overflow-y:auto;}
+.mc{background:var(--bg2);border-radius:20px 20px 0 0;padding:24px;width:100%;max-height:85vh;overflow-y:scroll;-webkit-overflow-scrolling:touch;}
 .mt{font-size:18px;font-weight:700;margin-bottom:16px;}
 .mcl{float:right;background:none;border:none;color:var(--text2);font-size:28px;cursor:pointer;line-height:1;}
 .ab{background:var(--bg3);border-radius:12px;padding:14px;margin-top:12px;border-left:3px solid var(--accent);}
@@ -205,7 +205,6 @@ input:focus{outline:none;border-color:var(--accent);}
   <div id="allQ" style="margin-top:16px"></div>
 </div>
 
-
 <!-- MODALS -->
 <div class="modal" id="m-addDaily">
   <div class="mc">
@@ -308,8 +307,8 @@ input:focus{outline:none;border-color:var(--accent);}
 const tg = window.Telegram && window.Telegram.WebApp;
 if (tg) { tg.expand(); tg.ready(); }
 
-const SURL = 'https://rbaepivpvkejdjyrxuzo.supabase.co';
-const SKEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJiYWVwaXZwdmtlamRqeXJ4dXpvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE2MjMzNDMsImV4cCI6MjA5NzE5OTM0M30.MQLxXgKsUTcA3CPzwav7tXfr5LhtZFSLCaUaMF5hRzo';
+const SURL = 'ТВОЙ_PROJECT_URL';
+const SKEY = 'ТВОЙ_ANON_KEY';
 let sb = null;
 let userId = 'local';
 try { sb = supabase.createClient(SURL, SKEY); } catch(e) {}
@@ -325,10 +324,10 @@ if (!D.goals) D.goals = [];
 if (!D.trips) D.trips = [];
 if (!D.diary) D.diary = [];
 if (!D.grat) D.grat = [];
+if (!D.quotes) D.quotes = [];
 if (!D.theme) D.theme = 'dark';
 if (!D.ftype) D.ftype = 'exp';
 if (!D.gtype) D.gtype = 'fin';
-if (!D.quotes) D.quotes = [];
 
 let curTrip = null, curGoal = null, curTT = 'cl';
 
@@ -350,34 +349,15 @@ const QQ = [
   {t:"Жизнь начинается там, где заканчивается зона комфорта.",a:"— Нил Дональд Уолш"},
 ];
 
-
-function loadCloud(cb) {
-  if (tg && tg.initDataUnsafe && tg.initDataUnsafe.user && sb) {
-    var uid = String(tg.initDataUnsafe.user.id);
-    userId = uid;
-    sb.from('user_data').select('*').eq('user_id', uid).single().then(function(r) {
-      if (r.data && r.data.data) {
-        try {
-          var remote = JSON.parse(r.data.data);
-          D = Object.assign(D, remote);
-          localStorage.setItem('bonoD', JSON.stringify(D));
-        } catch(e) {}
-      }
-      if (cb) cb();
-    }).catch(function() { if (cb) cb(); });
-  } else if (tg && tg.CloudStorage) {
-    tg.CloudStorage.getItem('bonoD', function(err, val) {
-      if (!err && val) {
-        try {
-          var remote = JSON.parse(val);
-          D = Object.assign(D, remote);
-          localStorage.setItem('bonoD', JSON.stringify(D));
-        } catch(e) {}
-      }
-      if (cb) cb();
+function save() {
+  localStorage.setItem('bonoD', JSON.stringify(D));
+  if (sb && userId !== 'local') {
+    sb.from('user_data').select('id').eq('user_id', userId).single().then(function(r) {
+      if (r.data) sb.from('user_data').update({data: JSON.stringify(D)}).eq('user_id', userId);
+      else sb.from('user_data').insert({user_id: userId, data: JSON.stringify(D)});
+    }).catch(function() {
+      sb.from('user_data').insert({user_id: userId, data: JSON.stringify(D)});
     });
-  } else {
-    if (cb) cb();
   }
 }
 
@@ -396,24 +376,6 @@ function showPage(p, el) {
   document.querySelectorAll('.tab').forEach(x => x.classList.remove('active'));
   document.getElementById('page-' + p).classList.add('active');
   el.classList.add('active');
-}
-
-function save() {
-  localStorage.setItem('bonoD', JSON.stringify(D));
-  if (tg && tg.CloudStorage) {
-    tg.CloudStorage.setItem('bonoD', JSON.stringify(D), function(){});
-  }
-  if (sb && userId && userId !== 'local') {
-    sb.from('user_data').select('id').eq('user_id', userId).single().then(function(r) {
-      if (r.data) {
-        sb.from('user_data').update({data: JSON.stringify(D)}).eq('user_id', userId);
-      } else {
-        sb.from('user_data').insert({user_id: userId, data: JSON.stringify(D)});
-      }
-    }).catch(function() {
-      sb.from('user_data').insert({user_id: userId, data: JSON.stringify(D)});
-    });
-  }
 }
 
 function openM(name) {
@@ -469,13 +431,7 @@ function renderMain() {
 }
 
 // TASKS
-function toggleDone(){
-  var el = document.getElementById('doneList');
-  if (el) {
-    el.style.display = el.style.display === 'none' ? 'block' : 'none';
-    el.previousElementSibling.textContent = (el.style.display === 'none' ? '▶' : '▼') + ' Выполнено (' + el.children.length + ')';
-  }
-}
+function toggleDone(){var el=document.getElementById('doneList');if(el){el.style.display=el.style.display==='none'?'block':'none';el.previousElementSibling.textContent=(el.style.display==='none'?'▶':'▼')+' Выполнено ('+el.children.length+')';}}
 
 function renderTasks() {
   var dl = D.daily||[], on = D.once||[];
@@ -498,26 +454,23 @@ function renderTasks() {
   var done = on.filter(function(t){return t.done;});
   document.getElementById('onceList').innerHTML =
     active.map(function(t){
-      var i = on.indexOf(t);
+      var i=on.indexOf(t);
       return '<div class="task" onclick="togOnce('+i+')">'
         +'<div class="chk"></div><div class="ttext">'+t.text+'</div>'
         +'<button class="btn-d" onclick="event.stopPropagation();delOnce('+i+')">✕</button></div>';
     }).join('')
-    + (done.length > 0 ?
+    +(done.length>0?
       '<div onclick="toggleDone()" style="cursor:pointer;padding:10px 0;font-size:13px;color:var(--text2)">▶ Выполнено ('+done.length+')</div>'
       +'<div id="doneList" style="display:none">'
-      + done.map(function(t){
-        var i = on.indexOf(t);
-        return '<div class="task done" onclick="togOnce('+i+')">'
-          +'<div class="chk">✓</div><div class="ttext">'+t.text+'</div>'
-          +'<button class="btn-d" onclick="event.stopPropagation();delOnce('+i+')">✕</button></div>';
-      }).join('')+'</div>' : '');
+      +done.map(function(t){var i=on.indexOf(t);return '<div class="task done" onclick="togOnce('+i+')">'
+        +'<div class="chk">✓</div><div class="ttext">'+t.text+'</div>'
+        +'<button class="btn-d" onclick="event.stopPropagation();delOnce('+i+')">✕</button></div>';}).join('')
+      +'</div>':'');
 }
 function togDaily(i){D.dd[i]=!D.dd[i];save();renderTasks();renderMain();}
 function togOnce(i){D.once[i].done=!D.once[i].done;save();renderTasks();renderMain();}
 function delDaily(i){D.daily.splice(i,1);delete D.dd[i];save();renderTasks();}
 function delOnce(i){D.once.splice(i,1);save();renderTasks();}
-function delFin(i){D.fin.splice(i,1);save();renderFin();}
 function addDaily(){var v=document.getElementById('nDaily').value.trim();if(!v)return;D.daily.push(v);save();renderTasks();closeM('addDaily');document.getElementById('nDaily').value='';}
 function addOnce(){var v=document.getElementById('nOnce').value.trim();if(!v)return;D.once.push({text:v,done:false});save();renderTasks();closeM('addOnce');document.getElementById('nOnce').value='';}
 
@@ -546,8 +499,8 @@ function renderFin(){
   document.getElementById('tbal').textContent=(inc-exp).toLocaleString()+' ₸';
   document.getElementById('tdep').textContent=(D.dep||0).toLocaleString()+' ₸';
   document.getElementById('txList').innerHTML=[...f].map(function(t,ri){return {t:t,i:ri};}).reverse().map(function(item){
-  var t=item.t, i=item.i;
-   return '<div class="tx"><div><div style="font-size:12px;color:var(--text2)">'+t.cat+' · '+t.date+'</div><div style="font-size:14px">'+t.name+'</div></div>'
+    var t=item.t,i=item.i;
+    return '<div class="tx"><div><div style="font-size:12px;color:var(--text2)">'+t.cat+' · '+t.date+'</div><div style="font-size:14px">'+t.name+'</div></div>'
       +'<div style="display:flex;align-items:center;gap:8px">'
       +'<div class="txa '+(t.type==='inc'?'p':'m')+'">'+(t.type==='inc'?'+':'-')+t.amount.toLocaleString()+' ₸</div>'
       +'<button class="btn-d" onclick="delFin('+i+')">✕</button>'
@@ -564,6 +517,7 @@ function renderFin(){
     document.getElementById('atxt').textContent=txt;
   }
 }
+function delFin(i){D.fin.splice(i,1);save();renderFin();}
 
 // GOALS
 function setGT(t){D.gtype=t;document.getElementById('gFin').classList.toggle('active',t==='fin');document.getElementById('gOth').classList.toggle('active',t==='oth');document.getElementById('gFinSec').style.display=t==='fin'?'block':'none';document.getElementById('gOthSec').style.display=t==='oth'?'block':'none';}
@@ -594,8 +548,7 @@ function renderGoals(){
       +'<div style="font-size:12px;color:var(--text2)">'+(g.type==='fin'?'💰 Финансовая':'🌱 Нефинансовая')+(g.deadline?' · до '+new Date(g.deadline).toLocaleDateString('ru'):'')+'</div></div>'
       +'<div style="display:flex;gap:6px;align-items:center">'
       +(need?'<span class="brd">Обнови!</span>':'')
-      +'<button class="btn-d" onclick="delGoal('+i+')">✕</button>'
-      +'</div></div>'
+      +'<button class="btn-d" onclick="delGoal('+i+')">✕</button></div></div>'
       +(g.type==='fin'?'<div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:4px"><span>'+(g.saved||0).toLocaleString()+' ₸</span><span>'+(g.target||0).toLocaleString()+' ₸</span></div>'
       +'<div class="gpb"><div class="gpf" style="width:'+pct+'%"></div></div>'
       +'<div style="font-size:13px;color:var(--accent);margin-bottom:8px">'+pct+'% накоплено</div>'
@@ -608,7 +561,7 @@ function renderGoals(){
       +'</div>';
   }).join('');
 }
-
+function delGoal(i){if(confirm('Удалить цель?')){D.goals.splice(i,1);save();renderGoals();}}
 function openGP(i){
   curGoal=i;var g=D.goals[i];
   document.getElementById('gpTitle').textContent=g.name;
@@ -619,8 +572,6 @@ function openGP(i){
   }
   openM('goalProg');
 }
-function delGoal(i){if(confirm('Удалить цель?')){D.goals.splice(i,1);save();renderGoals();}}
-
 function saveGP(){
   var g=D.goals[curGoal];
   if(g.type==='fin'){var a=parseFloat(document.getElementById('gpAmt').value)||0;g.saved=(g.saved||0)+a;g.progress.push({date:new Date().toLocaleDateString('ru'),dateRaw:new Date().toISOString(),amount:a});}
@@ -638,7 +589,6 @@ function addTrip(){
   document.getElementById('tName').value='';document.getElementById('tDate').value='';document.getElementById('tBudget').value='';
 }
 function daysLeft(s){if(!s)return null;return Math.ceil((new Date(s)-new Date())/(86400000));}
-function delTrip(i){if(confirm('Удалить поездку?')){D.trips.splice(i,1);save();renderTrips();}}
 function renderTrips(){
   var tr=D.trips||[];
   document.getElementById('tripList').innerHTML=tr.map(function(t,i){
@@ -649,11 +599,12 @@ function renderTrips(){
       +'<div style="font-size:13px;color:var(--text2);margin-top:4px">Чеклист: '+dc+'/'+(t.checklist||[]).length+'</div></div>'
       +(dl!==null?'<div style="text-align:center"><div class="cd">'+(dl>0?dl:0)+'</div><div style="font-size:11px;color:var(--text2)">'+(dl>0?'дней':'Уже едем!')+'</div></div>':'')
       +'</div><div style="display:flex;gap:8px;margin-top:10px">'
-+'<button class="btn-s" style="flex:1" onclick="openTD('+i+')">Открыть детали →</button>'
-+'<button class="btn-d" onclick="delTrip('+i+')">✕ Удалить</button>'
-+'</div></div>';
+      +'<button class="btn-s" style="flex:1" onclick="openTD('+i+')">Открыть детали →</button>'
+      +'<button class="btn-d" onclick="delTrip('+i+')">✕ Удалить</button>'
+      +'</div></div>';
   }).join('')||'<p style="color:var(--text2);text-align:center;padding:40px">Добавь свою первую поездку! ✈️</p>';
 }
+function delTrip(i){if(confirm('Удалить поездку?')){D.trips.splice(i,1);save();renderTrips();}}
 function openTD(i){curTrip=i;curTT='cl';document.getElementById('tdTitle').textContent='✈️ '+D.trips[i].name;document.querySelectorAll('#m-tripD .tb').forEach(function(b){b.classList.remove('active');});document.getElementById('ttCL').classList.add('active');renderTT('cl');openM('tripD');}
 function setTT(t){curTT=t;document.querySelectorAll('#m-tripD .tb').forEach(function(b){b.classList.remove('active');});document.getElementById('tt'+t.toUpperCase()).classList.add('active');renderTT(t);}
 function renderTT(t){
@@ -666,26 +617,59 @@ function renderTT(t){
     }).join('')+'</div>'
     +'<div style="display:flex;gap:8px;margin-top:12px"><input id="nCL" placeholder="Новый пункт..." style="margin:0;flex:1"><button class="btn-s" onclick="addCL()">+</button></div>';
   } else if(t==='pl'){
-    h='<div>'+(tr.places||[]).map(function(p,j){
-      return '<div class="pi"><span>📍 '+p+'</span><button class="btn-d" onclick="delPL('+j+')">✕</button></div>';
-    }).join('')||'<p style="color:var(--text2);font-size:14px;padding:12px 0">Добавь места для посещения</p>'
-    +'</div><div style="display:flex;gap:8px;margin-top:8px"><input id="nPL" placeholder="Название места..." style="margin:0;flex:1"><button class="btn-s" onclick="addPL()">+</button></div>';
+    var places = tr.places||[];
+    var days = {};
+    places.forEach(function(p,j){ var d=p.day||'День 1'; if(!days[d])days[d]=[]; days[d].push({p:p,j:j}); });
+    var dayKeys = Object.keys(days).sort();
+    var plHtml = dayKeys.length>0 ? dayKeys.map(function(day){
+      return '<div style="margin-bottom:16px">'
+        +'<div style="font-size:13px;font-weight:600;color:var(--accent);margin-bottom:8px">📅 '+day+'</div>'
+        +days[day].map(function(item){
+          var p=item.p,j=item.j;
+          var typeEmoji={'🍔 Еда':'🍔','🏛 Достопримечательность':'🏛','🛍 Шопинг':'🛍','🏨 Отель':'🏨','☕ Кафе':'☕','🎭 Развлечения':'🎭','📦 Другое':'📦'};
+          var em=typeEmoji[p.type]||'📍';
+          return '<div class="pi" style="margin-bottom:6px">'
+            +'<div style="flex:1">'
+            +'<div style="font-size:14px;font-weight:500">'+em+' '+p.name+'</div>'
+            +'<div style="font-size:12px;color:var(--text2)">'+p.type+'</div>'
+            +(p.url?'<a href="'+p.url+'" target="_blank" style="font-size:12px;color:var(--accent)">📍 Google Maps</a>':'')
+            +'</div>'
+            +'<div style="display:flex;flex-direction:column;gap:2px">'
+            +'<button class="btn-s" style="padding:2px 6px;font-size:11px" onclick="movePL('+j+',-1)">↑</button>'
+            +'<button class="btn-s" style="padding:2px 6px;font-size:11px" onclick="movePL('+j+',1)">↓</button>'
+            +'<button class="btn-d" style="padding:2px 6px;font-size:11px" onclick="delPL('+j+')">✕</button>'
+            +'</div></div>';
+        }).join('')
+        +'</div>';
+    }).join('') : '<p style="color:var(--text2);font-size:14px;padding:12px 0">Добавь места для посещения</p>';
+    h = plHtml
+    +'<div style="margin-top:8px;background:var(--bg3);border-radius:12px;padding:12px">'
+    +'<input id="nPLname" placeholder="Название места">'
+    +'<select id="nPLtype" style="margin-bottom:8px"><option>🍔 Еда</option><option>🏛 Достопримечательность</option><option>🛍 Шопинг</option><option>🏨 Отель</option><option>☕ Кафе</option><option>🎭 Развлечения</option><option>📦 Другое</option></select>'
+    +'<input id="nPLurl" placeholder="Ссылка Google Maps (необязательно)">'
+    +'<input id="nPLday" placeholder="День (например: День 1)">'
+    +'<button class="btn-s" onclick="addPL()" style="width:100%">+ Добавить место</button>'
+    +'</div>';
   } else {
-    h='<div>'+(tr.tickets||[]).map(function(tk,j){
+    h='<div style="margin-bottom:12px">'
+    +'<input id="nTKn" placeholder="Тип (Авиа, Отель, Трансфер...)">'
+    +'<input id="nTKi" placeholder="Номер билета или подтверждение">'
+    +'<input id="nTKdate" type="date">'
+    +'<input id="nTKfrom" placeholder="Откуда (город)">'
+    +'<input id="nTKtime" placeholder="Время (14:30)">'
+    +'<div style="margin-bottom:8px"><div style="font-size:13px;color:var(--text2);margin-bottom:4px">📎 Прикрепить файл (PDF или фото):</div>'
+    +'<input type="file" id="nTKfile" accept=".pdf,image/*" style="font-size:13px;color:var(--text);padding:8px"></div>'
+    +'<div id="nTKuploadStatus" style="font-size:12px;color:var(--accent);margin-bottom:8px"></div>'
+    +'<button class="btn-s" onclick="addTK()" style="width:100%">+ Добавить билет</button>'
+    +'</div>'
+    +'<div>'+(tr.tickets||[]).map(function(tk,j){
       return '<div class="pi"><div>'
         +'<div style="font-size:14px">🎫 '+tk.n+'</div>'
         +(tk.i?'<div style="font-size:12px;color:var(--text2)">'+tk.i+'</div>':'')
         +(tk.date?'<div style="font-size:12px;color:var(--accent)">📅 '+tk.date+(tk.from?' · из '+tk.from:'')+(tk.time?' · '+tk.time:'')+'</div>':'')
+        +(tk.url?'<a href="'+tk.url+'" target="_blank" style="font-size:12px;color:var(--accent);display:block;margin-top:4px">📎 Открыть файл</a>':'')
         +'</div><button class="btn-d" onclick="delTK('+j+')">✕</button></div>';
-    }).join('')||'<p style="color:var(--text2);font-size:14px;padding:12px 0">Добавь билеты</p>'
-    +'</div>'
-    +'<div style="margin-top:8px">'
-    +'<input id="nTKn" placeholder="Тип (Авиа, Отель, Трансфер...)">'
-    +'<input id="nTKi" placeholder="Номер билета или подтверждение">'
-    +'<input id="nTKdate" type="date" placeholder="Дата">'
-    +'<input id="nTKfrom" placeholder="Откуда (город)">'
-    +'<input id="nTKtime" placeholder="Время (14:30)">'
-    +'<button class="btn-s" onclick="addTK()" style="width:100%">+ Добавить</button>'
+    }).join('')||'<p style="color:var(--text2);font-size:14px;padding:12px 0">Билеты появятся здесь</p>'
     +'</div>';
   }
   document.getElementById('ttContent').innerHTML=h;
@@ -693,23 +677,59 @@ function renderTT(t){
 function togCL(j){D.trips[curTrip].checklist[j].d=!D.trips[curTrip].checklist[j].d;save();renderTT('cl');renderTrips();}
 function delCL(j){D.trips[curTrip].checklist.splice(j,1);save();renderTT('cl');}
 function addCL(){var v=document.getElementById('nCL').value.trim();if(!v)return;D.trips[curTrip].checklist.push({t:v,d:false});save();renderTT('cl');document.getElementById('nCL').value='';}
-function addPL(){var v=document.getElementById('nPL').value.trim();if(!v)return;D.trips[curTrip].places=D.trips[curTrip].places||[];D.trips[curTrip].places.push(v);save();renderTT('pl');document.getElementById('nPL').value='';}
+function addPL(){
+  var name=document.getElementById('nPLname').value.trim();
+  if(!name)return;
+  var type=document.getElementById('nPLtype').value;
+  var url=document.getElementById('nPLurl').value.trim();
+  var day=document.getElementById('nPLday').value.trim()||'День 1';
+  D.trips[curTrip].places=D.trips[curTrip].places||[];
+  D.trips[curTrip].places.push({name:name,type:type,url:url,day:day});
+  save();renderTT('pl');
+  document.getElementById('nPLname').value='';
+  document.getElementById('nPLurl').value='';
+  document.getElementById('nPLday').value='';
+}
+function movePL(j,dir){
+  var places=D.trips[curTrip].places;
+  var newJ=j+dir;
+  if(newJ<0||newJ>=places.length)return;
+  var tmp=places[j];places[j]=places[newJ];places[newJ]=tmp;
+  save();renderTT('pl');
+}
 function delPL(j){D.trips[curTrip].places.splice(j,1);save();renderTT('pl');}
-function addTK(){
+async function addTK(){
   var n=document.getElementById('nTKn').value.trim();
   if(!n)return;
   var info=document.getElementById('nTKi').value.trim();
   var date=document.getElementById('nTKdate').value;
   var from=document.getElementById('nTKfrom').value.trim();
   var time=document.getElementById('nTKtime').value.trim();
+  var fileInput=document.getElementById('nTKfile');
+  var file=fileInput?fileInput.files[0]:null;
+  var url='';
+  if(file&&sb){
+    var status=document.getElementById('nTKuploadStatus');
+    if(status)status.textContent='Загружаю файл...';
+    var path='tickets/'+Date.now()+'_'+file.name.replace(/[^a-zA-Z0-9._-]/g,'_');
+    var res=await sb.storage.from('files').upload(path,file,{upsert:true});
+    if(!res.error){
+      var pub=sb.storage.from('files').getPublicUrl(path);
+      url=pub.data.publicUrl;
+      if(status)status.textContent='';
+    } else {
+      if(status)status.textContent='Ошибка загрузки: '+res.error.message;
+    }
+  }
   D.trips[curTrip].tickets=D.trips[curTrip].tickets||[];
-  D.trips[curTrip].tickets.push({n:n,i:info,date:date,from:from,time:time});
+  D.trips[curTrip].tickets.push({n:n,i:info,date:date,from:from,time:time,url:url});
   save();renderTT('tk');
   document.getElementById('nTKn').value='';
   document.getElementById('nTKi').value='';
   document.getElementById('nTKdate').value='';
   document.getElementById('nTKfrom').value='';
   document.getElementById('nTKtime').value='';
+  if(fileInput)fileInput.value='';
 }
 function delTK(j){D.trips[curTrip].tickets.splice(j,1);save();renderTT('tk');}
 
@@ -749,18 +769,20 @@ function saveGrat(){
 
 // QUOTES
 function renderQuotes(){
-  document.getElementById('allQ').innerHTML = [...(D.quotes||[])].reverse().map(function(q){
-    return '<div class="qc"><div class="qt">"'+q.text+'"</div><div class="qa">'+q.date+'</div></div>';
-  }).join('') || '<p style="color:var(--text2);text-align:center;padding:40px">Добавь свой первый инсайт! 💫</p>';
+  var quotes = D.quotes||[];
+  document.getElementById('allQ').innerHTML = quotes.length>0
+    ? [...quotes].reverse().map(function(q){
+        return '<div class="qc"><div class="qt">"'+q.text+'"</div><div class="qa">'+q.date+'</div></div>';
+      }).join('')
+    : '<p style="color:var(--text2);text-align:center;padding:40px">Добавь свой первый инсайт! 💫</p>';
 }
-
 function addQuote(){
-  var text = document.getElementById('newQuote').value.trim();
-  if (!text) return;
-  if (!D.quotes) D.quotes = [];
-  D.quotes.push({text:text, date:new Date().toLocaleDateString('ru')});
-  save(); renderQuotes();
-  document.getElementById('newQuote').value = '';
+  var text=document.getElementById('newQuote').value.trim();
+  if(!text)return;
+  if(!D.quotes)D.quotes=[];
+  D.quotes.push({text:text,date:new Date().toLocaleDateString('ru')});
+  save();renderQuotes();
+  document.getElementById('newQuote').value='';
 }
 
 // INIT
@@ -768,11 +790,19 @@ applyTheme(D.theme||'dark');
 if (tg && tg.initDataUnsafe && tg.initDataUnsafe.user) {
   userId = String(tg.initDataUnsafe.user.id);
   document.getElementById('uname').textContent = tg.initDataUnsafe.user.first_name + ' 🌸';
+  if (sb) {
+    sb.from('user_data').select('*').eq('user_id', userId).single().then(function(r) {
+      if (r.data && r.data.data) {
+        var remote = JSON.parse(r.data.data);
+        D = Object.assign(D, remote);
+        localStorage.setItem('bonoD', JSON.stringify(D));
+        applyTheme(D.theme||'dark');
+        renderMain();renderTasks();renderFin();renderGoals();renderTrips();renderDiary();renderGrat();renderQuotes();
+      }
+    }).catch(function(){});
+  }
 }
-loadCloud(function() {
-  applyTheme(D.theme||'dark');
-  renderMain();renderTasks();renderFin();renderGoals();renderTrips();renderDiary();renderGrat();renderQuotes();
-});
+renderMain();renderTasks();renderFin();renderGoals();renderTrips();renderDiary();renderGrat();renderQuotes();
 </script>
 </body>
 </html>
