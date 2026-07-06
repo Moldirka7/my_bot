@@ -517,6 +517,7 @@ function togDaily(i){D.dd[i]=!D.dd[i];save();renderTasks();renderMain();}
 function togOnce(i){D.once[i].done=!D.once[i].done;save();renderTasks();renderMain();}
 function delDaily(i){D.daily.splice(i,1);delete D.dd[i];save();renderTasks();}
 function delOnce(i){D.once.splice(i,1);save();renderTasks();}
+function delFin(i){D.fin.splice(i,1);save();renderFin();}
 function addDaily(){var v=document.getElementById('nDaily').value.trim();if(!v)return;D.daily.push(v);save();renderTasks();closeM('addDaily');document.getElementById('nDaily').value='';}
 function addOnce(){var v=document.getElementById('nOnce').value.trim();if(!v)return;D.once.push({text:v,done:false});save();renderTasks();closeM('addOnce');document.getElementById('nOnce').value='';}
 
@@ -544,9 +545,13 @@ function renderFin(){
   document.getElementById('texp').textContent=exp.toLocaleString()+' ₸';
   document.getElementById('tbal').textContent=(inc-exp).toLocaleString()+' ₸';
   document.getElementById('tdep').textContent=(D.dep||0).toLocaleString()+' ₸';
-  document.getElementById('txList').innerHTML=[...f].reverse().map(function(t){
-    return '<div class="tx"><div><div style="font-size:12px;color:var(--text2)">'+t.cat+' · '+t.date+'</div><div style="font-size:14px">'+t.name+'</div></div>'
-      +'<div class="txa '+(t.type==='inc'?'p':'m')+'">'+(t.type==='inc'?'+':'-')+t.amount.toLocaleString()+' ₸</div></div>';
+document.getElementById('txList').innerHTML=[...f].map(function(t,ri){return {t:t,i:ri};}).reverse().map(function(item){
+  var t=item.t, i=item.i;
+   return '<div class="tx"><div><div style="font-size:12px;color:var(--text2)">'+t.cat+' · '+t.date+'</div><div style="font-size:14px">'+t.name+'</div></div>'
+      +'<div style="display:flex;align-items:center;gap:8px">'
+      +'<div class="txa '+(t.type==='inc'?'p':'m')+'">'+(t.type==='inc'?'+':'-')+t.amount.toLocaleString()+' ₸</div>'
+      +'<button class="btn-d" onclick="delFin('+([...f].length-1-fi)+')">✕</button>'
+      +'</div></div>';
   }).join('')||'<p style="color:var(--text2);text-align:center;padding:20px">Пока нет транзакций</p>';
   var cats={};
   f.filter(function(t){return t.type==='exp';}).forEach(function(t){cats[t.cat]=(cats[t.cat]||0)+t.amount;});
