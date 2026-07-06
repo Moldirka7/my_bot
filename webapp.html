@@ -355,8 +355,10 @@ function save() {
 }
 
 function loadCloud(cb) {
-  if (sb && userId && userId !== 'local') {
-    sb.from('user_data').select('*').eq('user_id', userId).single().then(function(r) {
+  if (tg && tg.initDataUnsafe && tg.initDataUnsafe.user && sb) {
+    var uid = String(tg.initDataUnsafe.user.id);
+    userId = uid;
+    sb.from('user_data').select('*').eq('user_id', uid).single().then(function(r) {
       if (r.data && r.data.data) {
         try {
           var remote = JSON.parse(r.data.data);
