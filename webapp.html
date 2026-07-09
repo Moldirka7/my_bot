@@ -139,7 +139,8 @@ input:focus{outline:none;border-color:var(--accent);}
   <button class="btn" onclick="openM('addDaily')">+ Добавить ежедневную</button>
   <div class="sec" style="margin-top:20px">📌 Одноразовые</div>
   <div id="onceList"></div>
-  <button class="btn" onclick="openM('addOnce')">+ Добавить одноразовую</button>
+  <div class="sec" style="margin-top:20px;cursor:pointer" onclick="toggleHistory()">📚 История выполненных ▶</div>
+  <div id="taskHistory" style="display:none"></div>
 </div>
 
 <!-- ФИНАНСЫ -->
@@ -317,7 +318,6 @@ let D = JSON.parse(localStorage.getItem('bonoD') || '{}');
 if (!D.daily) D.daily = [];
 if (!D.once) D.once = [];
 if (!D.dd) D.dd = {};
-if (!D.lastReset) D.lastReset = '';
 if (!D.fin) D.fin = [];
 if (!D.dep) D.dep = 0;
 if (!D.deph) D.deph = [];
@@ -325,7 +325,8 @@ if (!D.goals) D.goals = [];
 if (!D.trips) D.trips = [];
 if (!D.diary) D.diary = [];
 if (!D.grat) D.grat = [];
-if (!D.quotes) D.quotes = [];
+if (!D.lastReset) D.lastReset = '';
+if (!D.taskHistory) D.taskHistory = [];
 if (!D.theme) D.theme = 'dark';
 if (!D.ftype) D.ftype = 'exp';
 if (!D.gtype) D.gtype = 'fin';
@@ -432,11 +433,23 @@ function renderMain() {
 }
 
 // TASKS
+function toggleHistory(){
+  var el=document.getElementById('taskHistory');
+  var btn=el.previousElementSibling;
+  if(el.style.display==='none'){el.style.display='block';btn.textContent='📚 История выполненных ▼';}
+  else{el.style.display='none';btn.textContent='📚 История выполненных ▶';}
+}
+
 function toggleDone(){var el=document.getElementById('doneList');if(el){el.style.display=el.style.display==='none'?'block':'none';el.previousElementSibling.textContent=(el.style.display==='none'?'▶':'▼')+' Выполнено ('+el.children.length+')';}}
 
 function renderTasks() {
   var today = new Date().toLocaleDateString('ru');
   if (D.lastReset !== today) {
+    var completed = (D.once||[]).filter(function(t){ return t.done; });
+    if(completed.length > 0){
+      if(!D.taskHistory) D.taskHistory = [];
+      D.taskHistory.push({date: D.lastReset||today, tasks: completed.map(function(t){return t.text;})});
+    }
     D.dd = {};
     D.lastReset = today;
     D.once = (D.once||[]).filter(function(t){ return !t.done; });
@@ -474,6 +487,16 @@ function renderTasks() {
         +'<div class="chk">✓</div><div class="ttext">'+t.text+'</div>'
         +'<button class="btn-d" onclick="event.stopPropagation();delOnce('+i+')">✕</button></div>';}).join('')
       +'</div>':'');
+  var histEl = document.getElementById('taskHistory');
+  if(histEl){
+    var hist = D.taskHistory||[];
+    histEl.innerHTML = hist.length>0 ? [...hist].reverse().slice(0,10).map(function(h){
+      return '<div class="card" style="margin-bottom:8px">'
+        +'<div style="font-size:12px;color:var(--text2);margin-bottom:6px">✅ '+h.date+'</div>'
+        +h.tasks.map(function(t){return '<div style="font-size:14px;padding:3px 0">'+t+'</div>';}).join('')
+        +'</div>';
+    }).join('') : '<p style="color:var(--text2);font-size:14px">История пуста</p>';
+  }
 }
 function togDaily(i){D.dd[i]=!D.dd[i];save();renderTasks();renderMain();}
 function togOnce(i){D.once[i].done=!D.once[i].done;save();renderTasks();renderMain();}
