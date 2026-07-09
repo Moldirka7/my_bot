@@ -317,6 +317,7 @@ let D = JSON.parse(localStorage.getItem('bonoD') || '{}');
 if (!D.daily) D.daily = [];
 if (!D.once) D.once = [];
 if (!D.dd) D.dd = {};
+if (!D.lastReset) D.lastReset = '';
 if (!D.fin) D.fin = [];
 if (!D.dep) D.dep = 0;
 if (!D.deph) D.deph = [];
@@ -434,6 +435,13 @@ function renderMain() {
 function toggleDone(){var el=document.getElementById('doneList');if(el){el.style.display=el.style.display==='none'?'block':'none';el.previousElementSibling.textContent=(el.style.display==='none'?'▶':'▼')+' Выполнено ('+el.children.length+')';}}
 
 function renderTasks() {
+  var today = new Date().toLocaleDateString('ru');
+  if (D.lastReset !== today) {
+    D.dd = {};
+    D.lastReset = today;
+    D.once = (D.once||[]).filter(function(t){ return !t.done; });
+    save();
+  }
   var dl = D.daily||[], on = D.once||[];
   var dn = dl.filter(function(_,i){return D.dd[i];}).length + on.filter(function(t){return t.done;}).length;
   var tot = dl.length + on.length;
