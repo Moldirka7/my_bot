@@ -140,8 +140,6 @@ input:focus{outline:none;border-color:var(--accent);}
   <div class="sec" style="margin-top:20px">📌 Одноразовые</div>
   <div id="onceList"></div>
   <button class="btn" onclick="openM('addOnce')">+ Добавить одноразовую</button>
-  <div class="sec" style="margin-top:20px">📚 История выполненных</div>
-<div id="taskHistory"></div>
 </div>
 
 <!-- ФИНАНСЫ -->
@@ -320,7 +318,6 @@ if (!D.daily) D.daily = [];
 if (!D.once) D.once = [];
 if (!D.dd) D.dd = {};
 if (!D.lastReset) D.lastReset = '';
-if (!D.taskHistory) D.taskHistory = [];
 if (!D.fin) D.fin = [];
 if (!D.dep) D.dep = 0;
 if (!D.deph) D.deph = [];
@@ -442,57 +439,9 @@ function renderTasks() {
   if (D.lastReset !== today) {
     D.dd = {};
     D.lastReset = today;
-    var completed = (D.once||[]).filter(function(t){ return t.done; });
-    if(completed.length > 0){
-      if(!D.taskHistory) D.taskHistory = [];
-      D.taskHistory.push({date: today, tasks: completed.map(function(t){return t.text;})});
-    }
     D.once = (D.once||[]).filter(function(t){ return !t.done; });
     save();
   }
-  var dl = D.daily||[], on = D.once||[];
-  var dn = dl.filter(function(_,i){return D.dd[i];}).length + on.filter(function(t){return t.done;}).length;
-  var tot = dl.length + on.length;
-  var pct = tot>0 ? Math.round(dn/tot*100) : 0;
-  document.getElementById('spct').textContent = pct+'%';
-  document.getElementById('sbar').style.width = pct+'%';
-  document.getElementById('stxt').textContent = tot>0 ? 'Выполнено '+dn+' из '+tot+(pct===100?' 🎉 Молодец!':'') : 'Добавь задачи';
-  document.getElementById('dailyList').innerHTML = dl.map(function(t,i){
-    return '<div class="task '+(D.dd[i]?'done':'')+'" onclick="togDaily('+i+')">'
-      +'<div class="chk">'+(D.dd[i]?'✓':'')+'</div>'
-      +'<div class="ttext">'+t+'</div>'
-      +'<div style="display:flex;gap:6px;align-items:center">'
-      +'<div class="badge">каждый день</div>'
-      +'<button class="btn-d" onclick="event.stopPropagation();delDaily('+i+')">✕</button>'
-      +'</div></div>';
-  }).join('');
-  var active = on.filter(function(t){return !t.done;});
-  var done = on.filter(function(t){return t.done;});
-  document.getElementById('onceList').innerHTML =
-    active.map(function(t){
-      var i=on.indexOf(t);
-      return '<div class="task" onclick="togOnce('+i+')">'
-        +'<div class="chk"></div><div class="ttext">'+t.text+'</div>'
-        +'<button class="btn-d" onclick="event.stopPropagation();delOnce('+i+')">✕</button></div>';
-    }).join('')
-    +(done.length>0?
-      '<div onclick="toggleDone()" style="cursor:pointer;padding:10px 0;font-size:13px;color:var(--text2)">▶ Выполнено ('+done.length+')</div>'
-      +'<div id="doneList" style="display:none">'
-      +done.map(function(t){var i=on.indexOf(t);return '<div class="task done" onclick="togOnce('+i+')">'
-        +'<div class="chk">✓</div><div class="ttext">'+t.text+'</div>'
-        +'<button class="btn-d" onclick="event.stopPropagation();delOnce('+i+')">✕</button></div>';}).join('')
-      +'</div>':'');
-  var hist = D.taskHistory||[];
-  var histEl = document.getElementById('taskHistory');
-  if(histEl){
-    histEl.innerHTML = [...hist].reverse().slice(0,10).map(function(h){
-      return '<div class="card" style="margin-bottom:8px">'
-        +'<div style="font-size:12px;color:var(--text2);margin-bottom:6px">✅ '+h.date+'</div>'
-        +h.tasks.map(function(t){return '<div style="font-size:14px;padding:3px 0">'+t+'</div>';}).join('')
-        +'</div>';
-    }).join('') || '<p style="color:var(--text2);font-size:14px">История пуста</p>';
-  }
-}
   var dl = D.daily||[], on = D.once||[];
   var dn = dl.filter(function(_,i){return D.dd[i];}).length + on.filter(function(t){return t.done;}).length;
   var tot = dl.length + on.length;
