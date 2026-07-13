@@ -441,8 +441,15 @@ function toggleHistory(){
   else{el.style.display='none';btn.textContent='📚 История выполненных ▶';}
 }
 function openLink(url){
-  if(tg && tg.openLink) tg.openLink(url);
-  else window.open(url,'_blank');
+  try {
+    if(tg && tg.openLink){
+      tg.openLink(url);
+    } else {
+      window.open(url,'_blank');
+    }
+  } catch(e){
+    window.location.href = url;
+  }
 }
 function toggleDone(){var el=document.getElementById('doneList');if(el){el.style.display=el.style.display==='none'?'block':'none';el.previousElementSibling.textContent=(el.style.display==='none'?'▶':'▼')+' Выполнено ('+el.children.length+')';}}
 
