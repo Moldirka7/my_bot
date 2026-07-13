@@ -440,7 +440,10 @@ function toggleHistory(){
   if(el.style.display==='none'){el.style.display='block';btn.textContent='📚 История выполненных ▼';}
   else{el.style.display='none';btn.textContent='📚 История выполненных ▶';}
 }
-
+function openLink(url){
+  if(tg && tg.openLink) tg.openLink(url);
+  else window.open(url,'_blank');
+}
 function toggleDone(){var el=document.getElementById('doneList');if(el){el.style.display=el.style.display==='none'?'block':'none';el.previousElementSibling.textContent=(el.style.display==='none'?'▶':'▼')+' Выполнено ('+el.children.length+')';}}
 
 function renderTasks() {
@@ -664,7 +667,7 @@ function renderTT(t){
             +'<div style="flex:1">'
             +'<div style="font-size:14px;font-weight:500">'+em+' '+p.name+'</div>'
             +'<div style="font-size:12px;color:var(--text2)">'+p.type+'</div>'
-            +(p.url?'<a href="'+p.url+'" target="_blank" style="font-size:12px;color:var(--accent)">📍 Google Maps</a>':'')
+            +(p.url?'<span onclick="openLink(\''+p.url+'\')" style="font-size:12px;color:var(--accent);cursor:pointer">📍 Google Maps</span>':'')
             +'</div>'
             +'<div style="display:flex;flex-direction:column;gap:2px">'
             +'<button class="btn-s" style="padding:2px 6px;font-size:11px" onclick="movePL('+j+',-1)">↑</button>'
@@ -699,7 +702,7 @@ function renderTT(t){
         +'<div style="font-size:14px">🎫 '+tk.n+'</div>'
         +(tk.i?'<div style="font-size:12px;color:var(--text2)">'+tk.i+'</div>':'')
         +(tk.date?'<div style="font-size:12px;color:var(--accent)">📅 '+tk.date+(tk.from?' · из '+tk.from:'')+(tk.time?' · '+tk.time:'')+'</div>':'')
-        +(tk.url?'<a href="'+tk.url+'" target="_blank" style="font-size:12px;color:var(--accent);display:block;margin-top:4px">📎 Открыть файл</a>':'')
+        +(tk.url?'<span onclick="openLink(\''+tk.url+'\')" style="font-size:12px;color:var(--accent);cursor:pointer;display:block;margin-top:4px">📎 Открыть файл</span>':'')
         +'</div><button class="btn-d" onclick="delTK('+j+')">✕</button></div>';
     }).join('')||'<p style="color:var(--text2);font-size:14px;padding:12px 0">Билеты появятся здесь</p>'
     +'</div>';
